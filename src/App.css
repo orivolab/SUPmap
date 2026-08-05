@@ -1615,3 +1615,15 @@ a:hover {
     animation-iteration-count: 1 !important;
   }
 }
+.preserveTextFormatting,
+.infoCard strong,
+.infoCard small,
+.placeAmenitiesSection p,
+.placeAmenitiesSection strong,
+.placeAmenitiesSection small,
+.placeAmenitiesSection h4,
+.placeAmenitiesSection a {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

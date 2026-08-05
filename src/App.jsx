@@ -19,11 +19,17 @@ import LocationPickerPage from "./pages/LocationPickerPage";
 import EditPlacePage from "./pages/EditPlacePage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import SupportWidget from "./components/SupportWidget";
+import UpdatePlacePage from "./pages/UpdatePlacePage";
 import {
   deleteSupportTicket,
   getSupportTickets,
   updateSupportTicketStatus,
 } from "./services/supportService";
+import {
+  approvePlaceUpdate,
+  getPendingPlaceUpdates,
+  rejectPlaceUpdate,
+} from "./services/placeUpdatesService";
 
 import {
   approvePlace,
@@ -77,6 +83,7 @@ const PAGE = {
   PROFILE: "profile",
   PUBLIC_PROFILE: "public-profile",
   ADMIN: "admin",
+  UPDATE_PLACE: "update-place",
 };
 
 function getPlaceIdFromPath() {
@@ -810,6 +817,12 @@ function App() {
     pendingPhotos,
     setPendingPhotos,
   ] = useState([]);
+
+  const [
+  pendingPlaceUpdates,
+  setPendingPlaceUpdates,
+] = useState([]);
+
   const [
   supportTickets,
   setSupportTickets,
@@ -937,6 +950,7 @@ const pendingCount =
   pendingPlaces.length +
   pendingReviews.length +
   pendingPhotos.length +
+  pendingPlaceUpdates.length +
   newSupportTicketsCount;
 
   useEffect(() => {
@@ -953,12 +967,13 @@ const pendingCount =
           if (currentUser) {
             loadUserData(currentUser);
           } else {
-            setProfile(null);
-            setFavorites([]);
-            setPendingPlaces([]);
-            setPendingReviews([]);
-            setPendingPhotos([]);
-          }
+  setProfile(null);
+  setFavorites([]);
+  setPendingPlaces([]);
+  setPendingReviews([]);
+  setPendingPhotos([]);
+  setPendingPlaceUpdates([]);
+}
         }
       );
 
@@ -1222,18 +1237,20 @@ async function initializeApp() {
     }
   }
 
-  async function loadAdminData() {
+ async function loadAdminData() {
   try {
     const [
       placesData,
       reviewsData,
       photosData,
       ticketsData,
+      placeUpdatesData,
     ] = await Promise.all([
       getPendingPlaces(),
       getPendingReviews(),
       getPendingPhotos(),
       getSupportTickets(),
+      getPendingPlaceUpdates(),
     ]);
 
     setPendingPlaces(
@@ -1250,6 +1267,10 @@ async function initializeApp() {
 
     setSupportTickets(
       ticketsData
+    );
+
+    setPendingPlaceUpdates(
+      placeUpdatesData
     );
   } catch (error) {
     console.error(
@@ -1823,20 +1844,46 @@ async function initializeApp() {
     }
   }
 
+  function openPlaceUpdate() {
+  if (!user) {
+    openAuth(PAGE.UPDATE_PLACE);
+    return;
+  }
+
+  setPage(PAGE.UPDATE_PLACE);
+}
   if (
   page === PAGE.DETAILS &&
   selectedPlace
 ) {
   return renderWithSupport(
     <PlaceDetailsPage
+  place={selectedPlace}
+  user={user}
+  onBack={goHome}
+  onOpenAuth={() =>
+    openAuth(PAGE.DETAILS)
+  }
+  onOpenPublicProfile={
+    openPublicProfile
+  }
+  onOpenUpdate={
+    openPlaceUpdate
+  }
+/>
+  );
+}
+if (
+  page === PAGE.UPDATE_PLACE &&
+  selectedPlace &&
+  user
+) {
+  return renderWithSupport(
+    <UpdatePlacePage
       place={selectedPlace}
       user={user}
-      onBack={goHome}
-      onOpenAuth={() =>
-        openAuth(PAGE.DETAILS)
-      }
-      onOpenPublicProfile={
-        openPublicProfile
+      onBack={() =>
+        setPage(PAGE.DETAILS)
       }
     />
   );

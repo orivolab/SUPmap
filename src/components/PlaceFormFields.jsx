@@ -1052,25 +1052,27 @@ function PlaceFormFields({
       ]}
     />
 
-    <TextField
-      label="Godziny działania"
-      name="rental_opening_hours"
-      defaultValue={
-        place.rental_opening_hours
-      }
-      placeholder="Np. 10:00–19:00"
-      maxLength={300}
-    />
+    <TextareaField
+  label="Godziny działania"
+  name="rental_opening_hours"
+  defaultValue={
+    place.rental_opening_hours
+  }
+  placeholder="Np. pon.–pt. 10:00–18:00&#10;sob.–niedz. 9:00–20:00"
+  maxLength={500}
+  rows={3}
+/>
 
-    <TextField
-      label="Kontakt lub strona"
-      name="rental_contact"
-      defaultValue={
-        place.rental_contact
-      }
-      placeholder="Telefon, strona internetowa lub profil społecznościowy"
-      maxLength={500}
-    />
+    <TextareaField
+  label="Kontakt lub strona"
+  name="rental_contact"
+  defaultValue={
+    place.rental_contact
+  }
+  placeholder="Telefon, strona internetowa lub profil społecznościowy"
+  maxLength={500}
+  rows={3}
+/>
   </Grid>
 
   <CheckboxGroup
@@ -1340,15 +1342,16 @@ function PlaceFormFields({
       ]}
     />
 
-    <TextField
-      label="Cena"
-      name="campsite_price"
-      defaultValue={
-        place.campsite_price
-      }
-      placeholder="Np. 40 zł za osobę, 80 zł za kampera"
-      maxLength={500}
-    />
+    <TextareaField
+  label="Cena"
+  name="campsite_price"
+  defaultValue={
+    place.campsite_price
+  }
+  placeholder="Np. namiot 40 zł&#10;kamper 80 zł&#10;prąd 20 zł"
+  maxLength={800}
+  rows={4}
+/>
 
     <TextField
       label="Odległość"
@@ -1360,15 +1363,16 @@ function PlaceFormFields({
       maxLength={300}
     />
 
-    <TextField
-      label="Kontakt do campingu"
-      name="campsite_contact"
-      defaultValue={
-        place.campsite_contact
-      }
-      placeholder="Telefon, strona internetowa lub profil społecznościowy"
-      maxLength={700}
-    />
+    <TextareaField
+  label="Kontakt do campingu"
+  name="campsite_contact"
+  defaultValue={
+    place.campsite_contact
+  }
+  placeholder="Telefon, strona internetowa lub profil społecznościowy"
+  maxLength={700}
+  rows={3}
+/>
   </Grid>
 
   <Grid minimumWidth={210}>

@@ -245,6 +245,7 @@ function PlaceDetailsPage({
   onBack,
   onOpenAuth,
   onOpenPublicProfile,
+  onOpenUpdate,
 }) {
   const [
     activeTab,
@@ -411,6 +412,7 @@ function PlaceDetailsPage({
     liveReportModalOpen,
     setLiveReportModalOpen,
   ] = useState(false);
+
 
   useEffect(() => {
     if (!place?.id) {
@@ -1864,7 +1866,39 @@ function PlaceDetailsPage({
             <PlaceAmenities
               place={place}
             />
-          </div>
+          
+          <div
+  style={{
+    marginTop: 40,
+    textAlign: "center",
+  }}
+>
+ 
+  <button
+   onClick={onOpenUpdate}
+    style={{
+      background: "#0f766e",
+      color: "#fff",
+      border: "none",
+      borderRadius: "12px",
+      padding: "14px 22px",
+      fontSize: "16px",
+      cursor: "pointer",
+    }}
+  >
+    ✏️ Zaproponuj aktualizację danych
+  </button>
+
+  <p
+    style={{
+      marginTop: 10,
+      color: "#666",
+    }}
+  >
+    Masz nowsze informacje? Wyślij propozycję zmian. Zostanie ona sprawdzona przez administratora.
+  </p>
+   </div>
+</div>
         </div>
       )}
             {activeTab === "reviews" && (

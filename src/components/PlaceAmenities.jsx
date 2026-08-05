@@ -38,12 +38,13 @@ function ValueCard({
         {label}
       </h3>
 
-      <strong
-        style={{
-          fontSize: "16px",
-          lineHeight: 1.45,
-        }}
-      >
+     <strong
+  className="preserveTextFormatting"
+  style={{
+    fontSize: "16px",
+    lineHeight: 1.45,
+  }}
+>
         {hasValue
           ? value
           : "Brak informacji"}
@@ -51,6 +52,7 @@ function ValueCard({
 
       {description && (
         <small
+          className="preserveTextFormatting"
           style={{
             color: "#5c6c66",
             lineHeight: 1.45,
@@ -103,11 +105,12 @@ function BooleanCard({
         {label}
       </h3>
 
-      <strong
-        style={{
-          fontSize: "16px",
-        }}
-      >
+     <strong
+  className="preserveTextFormatting"
+  style={{
+    fontSize: "16px",
+  }}
+>
         {!known
           ? "Brak informacji"
           : value
@@ -117,6 +120,7 @@ function BooleanCard({
 
       {description && (
         <small
+          className="preserveTextFormatting"
           style={{
             color: "#5c6c66",
             lineHeight: 1.45,
@@ -254,13 +258,14 @@ function TextPanel({
         {title}
       </h4>
 
-      <p
-        style={{
-          margin: 0,
-        }}
-      >
-        {text}
-      </p>
+     <p
+  className="preserveTextFormatting"
+  style={{
+    margin: 0,
+  }}
+>
+  {text}
+</p>
     </article>
   );
 }
@@ -331,31 +336,32 @@ function StackedInfoRow({
           {label}
         </h4>
 
-        <strong
-          style={{
-            display: "block",
-            fontSize: "16px",
-            lineHeight: 1.5,
-            overflowWrap: "anywhere",
-          }}
-        >
+       <strong
+  className="preserveTextFormatting"
+  style={{
+    display: "block",
+    fontSize: "16px",
+    lineHeight: 1.5,
+  }}
+>
           {hasValue
             ? displayedValue
             : "Brak informacji"}
         </strong>
 
         {description && (
-          <p
-            style={{
-              margin: "5px 0 0",
-              color: "#5c6c66",
-              fontSize: "14px",
-              lineHeight: 1.5,
-            }}
-          >
-            {description}
-          </p>
-        )}
+  <p
+    className="preserveTextFormatting"
+    style={{
+      margin: "5px 0 0",
+      color: "#5c6c66",
+      fontSize: "14px",
+      lineHeight: 1.5,
+    }}
+  >
+    {description}
+  </p>
+)}
       </div>
     </article>
   );
@@ -408,17 +414,18 @@ function StackedInfoGroup({
           </h4>
 
           {description && (
-            <p
-              style={{
-                margin: "4px 0 0",
-                color: "#5c6c66",
-                fontSize: "14px",
-                lineHeight: 1.45,
-              }}
-            >
-              {description}
-            </p>
-          )}
+  <p
+    className="preserveTextFormatting"
+    style={{
+      margin: "4px 0 0",
+      color: "#5c6c66",
+      fontSize: "14px",
+      lineHeight: 1.45,
+    }}
+  >
+    {description}
+  </p>
+)}
         </div>
       </header>
 
@@ -958,7 +965,7 @@ function PlaceAmenities({ place }) {
           />
         </div>
       </DetailBlock>
-      
+
             <DetailBlock title="⛺ Nocleg i dłuższy pobyt">
   <div
     style={{
@@ -1015,10 +1022,8 @@ function PlaceAmenities({ place }) {
         icon="☎️"
         label="Kontakt"
         value={
-          place.campsite_contact ||
-          place.camper_contact ||
-          place.accommodation_link
-        }
+  place.campsite_contact
+}
       />
     </StackedInfoGroup>
 
