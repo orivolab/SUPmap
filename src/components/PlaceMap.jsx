@@ -16,6 +16,8 @@ import {
   useMap,
 } from "react-leaflet";
 
+import NavigationButtons from "./NavigationButtons";
+
 import {
   getPlaceMarkerState,
 } from "../services/placesService";
@@ -126,6 +128,7 @@ function MapAutoFit({
   places,
   focusedPlaceId,
   markerRefs,
+  userPosition,
   defaultCenter,
   defaultZoom,
 }) {
@@ -176,7 +179,9 @@ function MapAutoFit({
       }, 950);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      window.clearTimeout(
+        timeoutId
+      );
     };
   }, [
     map,
@@ -201,6 +206,12 @@ function MapAutoFit({
           Number.isFinite(lng)
       );
 
+    if (userPosition) {
+      positions.push(
+        userPosition
+      );
+    }
+
     if (positions.length === 0) {
       map.setView(
         defaultCenter,
@@ -213,7 +224,7 @@ function MapAutoFit({
     if (positions.length === 1) {
       map.flyTo(
         positions[0],
-        12,
+        userPosition ? 13 : 12,
         {
           duration: 0.7,
         }
@@ -226,7 +237,9 @@ function MapAutoFit({
       L.latLngBounds(positions),
       {
         padding: [55, 55],
-        maxZoom: 11,
+        maxZoom: userPosition
+          ? 12
+          : 11,
         duration: 0.7,
       }
     );
@@ -234,6 +247,7 @@ function MapAutoFit({
     map,
     places,
     focusedPlaceId,
+    userPosition,
     defaultCenter,
     defaultZoom,
   ]);
@@ -293,7 +307,9 @@ function MarkerLegend() {
   );
 }
 
-function getLocationErrorMessage(error) {
+function getLocationErrorMessage(
+  error
+) {
   switch (error?.code) {
     case 1:
       return (
@@ -322,6 +338,7 @@ function PlaceMap({
   places = [],
   focusedPlaceId = null,
   onSelectPlace,
+  onUserLocationChange,
   center = [52.1, 19.4],
   zoom = 6,
   height = "700px",
@@ -352,29 +369,41 @@ function PlaceMap({
     setIsLocating,
   ] = useState(false);
 
+  const safePlaces =
+    Array.isArray(places)
+      ? places
+      : [];
+
   const validPlaces = useMemo(
     () =>
-      places.filter((place) => {
-        const lat =
-          Number(place.lat);
+      safePlaces.filter(
+        (place) => {
+          const lat =
+            Number(place?.lat);
 
-        const lng =
-          Number(place.lng);
+          const lng =
+            Number(place?.lng);
 
-        return (
-          Number.isFinite(lat) &&
-          Number.isFinite(lng)
-        );
-      }),
-    [places]
+          return (
+            Number.isFinite(lat) &&
+            Number.isFinite(lng)
+          );
+        }
+      ),
+    [safePlaces]
   );
 
   const markers = useMemo(
     () =>
-      validPlaces.map((place) => ({
-        place,
-        icon: createMarkerIcon(place),
-      })),
+      validPlaces.map(
+        (place) => ({
+          place,
+          icon:
+            createMarkerIcon(
+              place
+            ),
+        })
+      ),
     [validPlaces]
   );
 
@@ -422,13 +451,13 @@ function PlaceMap({
           return;
         }
 
-        const newPosition = [
+        const positionArray = [
           lat,
           lng,
         ];
 
         setUserPosition(
-          newPosition
+          positionArray
         );
 
         setUserAccuracy(
@@ -437,8 +466,13 @@ function PlaceMap({
             : null
         );
 
+        onUserLocationChange?.({
+          lat,
+          lng,
+        });
+
         mapRef.current?.flyTo(
-          newPosition,
+          positionArray,
           13,
           {
             duration: 1,
@@ -493,7 +527,12 @@ function PlaceMap({
           focusedPlaceId={
             focusedPlaceId
           }
-          markerRefs={markerRefs}
+          markerRefs={
+            markerRefs
+          }
+          userPosition={
+            userPosition
+          }
           defaultCenter={center}
           defaultZoom={zoom}
         />
@@ -578,7 +617,7 @@ function PlaceMap({
               <Popup>
                 <div
                   style={{
-                    width: "210px",
+                    width: "220px",
                   }}
                 >
                   {place.image_url && (
@@ -586,11 +625,15 @@ function PlaceMap({
                       src={
                         place.image_url
                       }
-                      alt={place.name}
+                      alt={
+                        place.name
+                      }
                       style={{
                         width: "100%",
-                        height: "110px",
-                        display: "block",
+                        height:
+                          "110px",
+                        display:
+                          "block",
                         objectFit:
                           "cover",
                         borderRadius:
@@ -603,7 +646,8 @@ function PlaceMap({
 
                   <strong
                     style={{
-                      fontSize: "16px",
+                      fontSize:
+                        "16px",
                     }}
                   >
                     {place.name}
@@ -647,6 +691,11 @@ function PlaceMap({
                   >
                     Zobacz szczegóły
                   </button>
+
+                  <NavigationButtons
+                    place={place}
+                    compact
+                  />
                 </div>
               </Popup>
             </Marker>
@@ -664,7 +713,8 @@ function PlaceMap({
           top: "14px",
           right: "14px",
           padding: "10px 14px",
-          border: "1px solid #d6e1dd",
+          border:
+            "1px solid #d6e1dd",
           borderRadius: "12px",
           background: "#ffffff",
           color: "#245e4d",
