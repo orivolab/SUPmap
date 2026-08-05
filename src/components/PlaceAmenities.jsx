@@ -133,30 +133,53 @@ function ListValue({
   values,
   emptyText = "Brak informacji",
 }) {
-  const safeValues = Array.isArray(values)
-    ? values.filter(Boolean)
-    : [];
+  const safeValues =
+    Array.isArray(values)
+      ? values.filter(Boolean)
+      : [];
 
   if (safeValues.length === 0) {
     return <>{emptyText}</>;
   }
 
-  return <>{safeValues.join(", ")}</>;
+  return (
+    <>
+      {safeValues.join(", ")}
+    </>
+  );
 }
+
 function getDetailBlockId(title) {
   const sectionIds = {
-    "🚗 Parking": "overview-parking",
+    "🚗 Parking":
+      "overview-parking",
 
-    "🐶 Psy": "overview-dogs",
+    "🐶 Psy":
+      "overview-dogs",
 
-    "🚻 Toalety, prysznice i przebieralnie":
-      "overview-amenities",
+    "🚻 Toalety":
+      "overview-toilets",
 
-    "🍔 Gastronomia i wypożyczalnia":
+    "🚿 Prysznice":
+      "overview-showers",
+
+    "👕 Przebieralnie":
+      "overview-changing-rooms",
+
+    "🍔 Gastronomia":
       "overview-gastronomy",
 
-    "🛟 Ratownik, grill i ognisko":
-      "overview-safety",
+    "🏄 Wypożyczalnia":
+      "overview-rental",
+
+    "🛟 Ratownik":
+      "overview-lifeguard",
+
+    "🔥 Grill":
+      "overview-grill",
+
+    "🔥 Ognisko":
+      "overview-bonfire",
 
     "🌳 Cień i odpoczynek":
       "overview-rest",
@@ -170,8 +193,11 @@ function getDetailBlockId(title) {
     "🌊 Charakter wody i brzegu":
       "overview-water",
 
-    "👶 Dzieci i początkujący":
+    "👶 Dzieci":
       "overview-children",
+
+    "🏄 Początkujący":
+      "overview-beginners",
 
     "🚤 Ruch wodny i przeszkody":
       "overview-water-traffic",
@@ -180,7 +206,7 @@ function getDetailBlockId(title) {
       "overview-important-details",
   };
 
-  return sectionIds[title] || undefined;
+  return sectionIds[title];
 }
 
 function DetailBlock({
@@ -193,19 +219,9 @@ function DetailBlock({
   return (
     <section
       id={sectionId}
-      className="overviewScrollSection"
-      style={{
-        marginTop: "30px",
-      }}
+      className="overviewScrollSection placeAmenitiesSection"
     >
-      <h3
-        style={{
-          marginBottom: "16px",
-          fontSize: "22px",
-        }}
-      >
-        {title}
-      </h3>
+      <h3>{title}</h3>
 
       {children}
     </section>
@@ -256,9 +272,8 @@ function PlaceAmenities({ place }) {
 
   return (
     <section
-      className="adminCard"
+      className="placeAmenitiesCard"
       style={{
-        padding: "26px",
         marginTop: "32px",
       }}
     >
@@ -300,19 +315,25 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="🅿️"
             label="Parking"
-            value={place.parking_available}
+            value={
+              place.parking_available
+            }
           />
 
           <ValueCard
             icon="💳"
             label="Rodzaj parkingu"
-            value={place.parking_type}
+            value={
+              place.parking_type
+            }
           />
 
           <ValueCard
             icon="💰"
             label="Cena"
-            value={place.parking_price}
+            value={
+              place.parking_price
+            }
           />
 
           <ValueCard
@@ -327,7 +348,9 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="🚘"
             label="Wielkość parkingu"
-            value={place.parking_size}
+            value={
+              place.parking_size
+            }
           />
 
           <ValueCard
@@ -354,12 +377,16 @@ function PlaceAmenities({ place }) {
         >
           <TextPanel
             title="Opis parkingu"
-            text={place.parking_description}
+            text={
+              place.parking_description
+            }
           />
 
           <TextPanel
             title="Ograniczenia"
-            text={place.parking_restrictions}
+            text={
+              place.parking_restrictions
+            }
           />
         </div>
       </DetailBlock>
@@ -375,15 +402,16 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="🐾"
             label="Psy dozwolone"
-            value={place.dogs_allowed}
+            value={
+              place.dogs_allowed
+            }
             description={
               place.dogs_description
             }
           />
         </div>
       </DetailBlock>
-
-      <DetailBlock title="🚻 Toalety, prysznice i przebieralnie">
+            <DetailBlock title="🚻 Toalety">
         <div
           className="infoGrid"
           style={{
@@ -394,7 +422,9 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="🚻"
             label="Toalety"
-            value={place.toilets_available}
+            value={
+              place.toilets_available
+            }
             description={
               place.toilets_description
             }
@@ -403,7 +433,9 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="💰"
             label="Toalety — opłata"
-            value={place.toilets_paid}
+            value={
+              place.toilets_paid
+            }
             description={
               place.toilets_price
                 ? `Cena: ${place.toilets_price}`
@@ -427,11 +459,23 @@ function PlaceAmenities({ place }) {
             }
             description="Dla osób z niepełnosprawnościami"
           />
+        </div>
+      </DetailBlock>
 
+      <DetailBlock title="🚿 Prysznice">
+        <div
+          className="infoGrid"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+          }}
+        >
           <ValueCard
             icon="🚿"
             label="Prysznice"
-            value={place.showers_available}
+            value={
+              place.showers_available
+            }
             description={
               place.showers_description
             }
@@ -440,7 +484,9 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="💰"
             label="Prysznice — opłata"
-            value={place.showers_paid}
+            value={
+              place.showers_paid
+            }
             description={
               place.showers_price
                 ? `Cena: ${place.showers_price}`
@@ -455,7 +501,17 @@ function PlaceAmenities({ place }) {
               place.showers_opening_hours
             }
           />
+        </div>
+      </DetailBlock>
 
+      <DetailBlock title="👕 Przebieralnie">
+        <div
+          className="infoGrid"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+          }}
+        >
           <ValueCard
             icon="👕"
             label="Przebieralnie"
@@ -490,7 +546,7 @@ function PlaceAmenities({ place }) {
         </div>
       </DetailBlock>
 
-      <DetailBlock title="🍔 Gastronomia i wypożyczalnia">
+      <DetailBlock title="🍔 Gastronomia">
         <div
           className="infoGrid"
           style={{
@@ -536,11 +592,23 @@ function PlaceAmenities({ place }) {
               place.gastronomy_card_payment
             }
           />
+        </div>
+      </DetailBlock>
 
+      <DetailBlock title="🏄 Wypożyczalnia">
+        <div
+          className="infoGrid"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+          }}
+        >
           <ValueCard
             icon="🏄"
             label="Wypożyczalnia"
-            value={place.rental_available}
+            value={
+              place.rental_available
+            }
             description={
               place.rental_description
             }
@@ -556,19 +624,25 @@ function PlaceAmenities({ place }) {
                 }
               />
             }
-            description={place.rental_other}
+            description={
+              place.rental_other
+            }
           />
 
           <ValueCard
             icon="💰"
             label="Cennik"
-            value={place.rental_prices}
+            value={
+              place.rental_prices
+            }
           />
 
           <ValueCard
             icon="🔐"
             label="Kaucja"
-            value={place.rental_deposit}
+            value={
+              place.rental_deposit
+            }
           />
 
           <ValueCard
@@ -598,12 +672,14 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="☎️"
             label="Kontakt"
-            value={place.rental_contact}
+            value={
+              place.rental_contact
+            }
           />
         </div>
       </DetailBlock>
 
-      <DetailBlock title="🛟 Ratownik, grill i ognisko">
+      <DetailBlock title="🛟 Ratownik">
         <div
           className="infoGrid"
           style={{
@@ -621,20 +697,44 @@ function PlaceAmenities({ place }) {
               place.lifeguard_description
             }
           />
+        </div>
+      </DetailBlock>
 
+      <DetailBlock title="🔥 Grill">
+        <div
+          className="infoGrid"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+          }}
+        >
           <ValueCard
             icon="🔥"
             label="Grill"
-            value={place.grill_status}
+            value={
+              place.grill_status
+            }
             description={
               place.grill_description
             }
           />
+        </div>
+      </DetailBlock>
 
+      <DetailBlock title="🔥 Ognisko">
+        <div
+          className="infoGrid"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+          }}
+        >
           <ValueCard
             icon="🔥"
             label="Ognisko"
-            value={place.bonfire_status}
+            value={
+              place.bonfire_status
+            }
             description={
               place.bonfire_description
             }
@@ -653,54 +753,69 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="🌳"
             label="Cień"
-            value={place.shade_level}
+            value={
+              place.shade_level
+            }
           />
 
           <BooleanCard
             icon="🪑"
             label="Ławki"
-            value={place.benches}
+            value={
+              place.benches
+            }
           />
 
           <BooleanCard
             icon="🧺"
             label="Stoły piknikowe"
-            value={place.picnic_tables}
+            value={
+              place.picnic_tables
+            }
           />
 
           <BooleanCard
             icon="🏕️"
             label="Altany lub wiaty"
-            value={place.shelters}
+            value={
+              place.shelters
+            }
           />
 
           <BooleanCard
             icon="🌱"
             label="Trawnik na koc"
-            value={place.lawn}
+            value={
+              place.lawn
+            }
           />
 
           <BooleanCard
             icon="🛝"
             label="Plac zabaw"
-            value={place.playground}
+            value={
+              place.playground
+            }
           />
 
           <BooleanCard
             icon="⚽"
             label="Boisko"
-            value={place.sports_field}
+            value={
+              place.sports_field
+            }
           />
 
           <ValueCard
             icon="➕"
             label="Inne"
-            value={place.rest_other}
+            value={
+              place.rest_other
+            }
           />
         </div>
       </DetailBlock>
-
-      <DetailBlock title="⛺ Nocleg i dłuższy pobyt">
+            <DetailBlock title="⛺ Nocleg i dłuższy pobyt">
         <div
           className="infoGrid"
           style={{
@@ -792,7 +907,9 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="🔗"
             label="Link do noclegu"
-            value={place.accommodation_link}
+            value={
+              place.accommodation_link
+            }
           />
 
           <BooleanCard
@@ -904,7 +1021,7 @@ function PlaceAmenities({ place }) {
         </div>
       </DetailBlock>
 
-      <DetailBlock title="👶 Dzieci i początkujący">
+      <DetailBlock title="👶 Dzieci">
         <div
           className="infoGrid"
           style={{
@@ -915,7 +1032,9 @@ function PlaceAmenities({ place }) {
           <ValueCard
             icon="👶"
             label="Dla dzieci"
-            value={place.children_rating}
+            value={
+              place.children_rating
+            }
             description={
               place.children_description
             }
@@ -932,11 +1051,23 @@ function PlaceAmenities({ place }) {
               />
             }
           />
+        </div>
+      </DetailBlock>
 
+      <DetailBlock title="🏄 Początkujący">
+        <div
+          className="infoGrid"
+          style={{
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(180px, 1fr))",
+          }}
+        >
           <ValueCard
             icon="🏄"
             label="Dla początkujących"
-            value={place.beginner_rating}
+            value={
+              place.beginner_rating
+            }
             description={
               place.beginner_description
             }
@@ -955,8 +1086,7 @@ function PlaceAmenities({ place }) {
           />
         </div>
       </DetailBlock>
-
-      <DetailBlock title="🚤 Ruch wodny i przeszkody">
+            <DetailBlock title="🚤 Ruch wodny i przeszkody">
         <div
           className="infoGrid"
           style={{
