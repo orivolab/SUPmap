@@ -13,6 +13,7 @@ import PlaceStatistics from "../components/PlaceStatistics";
 import VisitModal from "../components/VisitModal";
 import LiveReportModal from "../components/LiveReportModal";
 import OverviewSidebar from "../components/OverviewSidebar";
+import ImageCropModal from "../components/ImageCropModal";
 
 import {
   addFavorite,
@@ -245,79 +246,146 @@ function PlaceDetailsPage({
   onOpenAuth,
   onOpenPublicProfile,
 }) {
-  const [activeTab, setActiveTab] =
-    useState("overview");
+  const [
+    activeTab,
+    setActiveTab,
+  ] = useState("overview");
 
-  const [reviews, setReviews] =
-    useState([]);
+  const [
+    reviews,
+    setReviews,
+  ] = useState([]);
 
-  const [photos, setPhotos] =
-    useState([]);
+  const [
+    photos,
+    setPhotos,
+  ] = useState([]);
 
-  const [activeReports, setActiveReports] =
-    useState([]);
+  const [
+    activeReports,
+    setActiveReports,
+  ] = useState([]);
 
-  const [allReports, setAllReports] =
-    useState([]);
+  const [
+    allReports,
+    setAllReports,
+  ] = useState([]);
 
-  const [warnings, setWarnings] =
-    useState([]);
+  const [
+    warnings,
+    setWarnings,
+  ] = useState([]);
 
-  const [statistics, setStatistics] =
-    useState(null);
+  const [
+    statistics,
+    setStatistics,
+  ] = useState(null);
 
-  const [verificationInfo, setVerificationInfo] =
-    useState({
-      totalCount: 0,
-      uniqueRecentCount: 0,
-      verified: false,
-      latestVerificationAt: null,
-      canCurrentUserVerify: false,
-    });
+  const [
+    verificationInfo,
+    setVerificationInfo,
+  ] = useState({
+    totalCount: 0,
+    uniqueRecentCount: 0,
+    verified: false,
+    latestVerificationAt: null,
+    canCurrentUserVerify: false,
+  });
 
-  const [favorite, setFavorite] =
-    useState(false);
+  const [
+    favorite,
+    setFavorite,
+  ] = useState(false);
 
-  const [reviewRating, setReviewRating] =
-    useState(5);
+  const [
+    reviewRating,
+    setReviewRating,
+  ] = useState(5);
 
-  const [reviewSortMode, setReviewSortMode] =
-    useState("newest");
+  const [
+    reviewSortMode,
+    setReviewSortMode,
+  ] = useState("newest");
 
-  const [photoSortMode, setPhotoSortMode] =
-    useState("newest");
+  const [
+    photoSortMode,
+    setPhotoSortMode,
+  ] = useState("newest");
 
-  const [photoCategory, setPhotoCategory] =
-    useState("");
+  const [
+    photoCategory,
+    setPhotoCategory,
+  ] = useState("");
 
-  const [selectedPhoto, setSelectedPhoto] =
-    useState(null);
+  const [
+    selectedPhotos,
+    setSelectedPhotos,
+  ] = useState([]);
 
-  const [reviewMessage, setReviewMessage] =
-    useState("");
+  const [
+    photoCropQueue,
+    setPhotoCropQueue,
+  ] = useState([]);
 
-  const [photoMessage, setPhotoMessage] =
-    useState("");
+  const [
+    photoCropImageUrl,
+    setPhotoCropImageUrl,
+  ] = useState(null);
 
-  const [favoriteMessage, setFavoriteMessage] =
-    useState("");
+  const [
+    photoOriginalFileName,
+    setPhotoOriginalFileName,
+  ] = useState("");
+
+  const [
+    photoInputKey,
+    setPhotoInputKey,
+  ] = useState(0);
+
+  const [
+    submittingPhotos,
+    setSubmittingPhotos,
+  ] = useState(false);
+
+  const [
+    reviewMessage,
+    setReviewMessage,
+  ] = useState("");
+
+  const [
+    photoMessage,
+    setPhotoMessage,
+  ] = useState("");
+
+  const [
+    favoriteMessage,
+    setFavoriteMessage,
+  ] = useState("");
 
   const [
     verificationMessage,
     setVerificationMessage,
   ] = useState("");
 
-  const [generalMessage, setGeneralMessage] =
-    useState("");
+  const [
+    generalMessage,
+    setGeneralMessage,
+  ] = useState("");
 
-  const [loadingReviews, setLoadingReviews] =
-    useState(true);
+  const [
+    loadingReviews,
+    setLoadingReviews,
+  ] = useState(true);
 
-  const [loadingPhotos, setLoadingPhotos] =
-    useState(true);
+  const [
+    loadingPhotos,
+    setLoadingPhotos,
+  ] = useState(true);
 
-  const [loadingReports, setLoadingReports] =
-    useState(true);
+  const [
+    loadingReports,
+    setLoadingReports,
+  ] = useState(true);
 
   const [
     loadingStatistics,
@@ -334,8 +402,10 @@ function PlaceDetailsPage({
     setSubmittingVerification,
   ] = useState(false);
 
-  const [visitModalOpen, setVisitModalOpen] =
-    useState(false);
+  const [
+    visitModalOpen,
+    setVisitModalOpen,
+  ] = useState(false);
 
   const [
     liveReportModalOpen,
@@ -350,13 +420,42 @@ function PlaceDetailsPage({
     loadAllPlaceData();
   }, [place?.id, user?.id]);
 
+  useEffect(() => {
+    return () => {
+      if (photoCropImageUrl) {
+        URL.revokeObjectURL(
+          photoCropImageUrl
+        );
+      }
+
+      photoCropQueue.forEach(
+        (queuedPhoto) => {
+          URL.revokeObjectURL(
+            queuedPhoto.url
+          );
+        }
+      );
+
+      selectedPhotos.forEach(
+        (selectedPhoto) => {
+          URL.revokeObjectURL(
+            selectedPhoto.previewUrl
+          );
+        }
+      );
+    };
+  }, []);
+
   const sortedReviews = useMemo(
     () =>
       sortReviews(
         reviews,
         reviewSortMode
       ),
-    [reviews, reviewSortMode]
+    [
+      reviews,
+      reviewSortMode,
+    ]
   );
 
   const sortedPhotos = useMemo(
@@ -365,12 +464,17 @@ function PlaceDetailsPage({
         photos,
         photoSortMode
       ),
-    [photos, photoSortMode]
+    [
+      photos,
+      photoSortMode,
+    ]
   );
 
   const averageRating = useMemo(
     () =>
-      calculateAverageRating(reviews),
+      calculateAverageRating(
+        reviews
+      ),
     [reviews]
   );
 
@@ -382,15 +486,15 @@ function PlaceDetailsPage({
     return calculateSupScore({
       place,
       statistics,
-      liveReports: activeReports,
+      liveReports:
+        activeReports,
     });
   }, [
     place,
     statistics,
     activeReports,
   ]);
-
-  async function loadAllPlaceData() {
+    async function loadAllPlaceData() {
     await Promise.allSettled([
       loadReviews(),
       loadPhotos(),
@@ -418,6 +522,7 @@ function PlaceDetailsPage({
       );
 
       setReviews([]);
+
       setReviewMessage(
         `Nie udało się pobrać opinii: ${error.message}`
       );
@@ -443,6 +548,7 @@ function PlaceDetailsPage({
       );
 
       setPhotos([]);
+
       setPhotoMessage(
         `Nie udało się pobrać zdjęć: ${error.message}`
       );
@@ -601,7 +707,9 @@ function PlaceDetailsPage({
 
     try {
       if (favorite) {
-        await removeFavorite(place.id);
+        await removeFavorite(
+          place.id
+        );
 
         setFavorite(false);
 
@@ -609,7 +717,9 @@ function PlaceDetailsPage({
           "Usunięto miejsce z ulubionych."
         );
       } else {
-        await addFavorite(place.id);
+        await addFavorite(
+          place.id
+        );
 
         setFavorite(true);
 
@@ -637,12 +747,15 @@ function PlaceDetailsPage({
     }
 
     const allowed =
-      await canVerifyPlace(place.id);
+      await canVerifyPlace(
+        place.id
+      );
 
     if (!allowed) {
       setVerificationMessage(
         "Możesz ponownie potwierdzić to miejsce po upływie 3 godzin."
       );
+
       return;
     }
 
@@ -653,7 +766,9 @@ function PlaceDetailsPage({
     );
 
     try {
-      await verifyPlace(place.id);
+      await verifyPlace(
+        place.id
+      );
 
       await Promise.all([
         loadVerificationInfo(),
@@ -691,7 +806,9 @@ function PlaceDetailsPage({
       return;
     }
 
-    const form = event.currentTarget;
+    const form =
+      event.currentTarget;
+
     const formData =
       new FormData(form);
 
@@ -703,15 +820,18 @@ function PlaceDetailsPage({
       await submitReview({
         placeId: place.id,
 
-        author: formData.get(
-          "author"
-        ),
+        author:
+          formData.get(
+            "author"
+          ),
 
-        rating: reviewRating,
+        rating:
+          reviewRating,
 
-        comment: formData.get(
-          "comment"
-        ),
+        comment:
+          formData.get(
+            "comment"
+          ),
       });
 
       form.reset();
@@ -741,7 +861,8 @@ function PlaceDetailsPage({
 
     try {
       await toggleReviewHelpful({
-        reviewId: review.id,
+        reviewId:
+          review.id,
 
         currentlyHelpful:
           review.currentUserMarkedHelpful,
@@ -767,11 +888,12 @@ function PlaceDetailsPage({
       return;
     }
 
-    const reason = window.prompt(
-      `Podaj powód zgłoszenia:\n\n${REVIEW_REPORT_REASONS.join(
-        "\n"
-      )}`
-    );
+    const reason =
+      window.prompt(
+        `Podaj powód zgłoszenia:\n\n${REVIEW_REPORT_REASONS.join(
+          "\n"
+        )}`
+      );
 
     if (!reason?.trim()) {
       return;
@@ -799,27 +921,266 @@ function PlaceDetailsPage({
     }
   }
 
-  async function handlePhotoChange(
+  function clearAllSelectedPhotos() {
+    selectedPhotos.forEach(
+      (selectedPhoto) => {
+        URL.revokeObjectURL(
+          selectedPhoto.previewUrl
+        );
+      }
+    );
+
+    photoCropQueue.forEach(
+      (queuedPhoto) => {
+        URL.revokeObjectURL(
+          queuedPhoto.url
+        );
+      }
+    );
+
+    if (photoCropImageUrl) {
+      URL.revokeObjectURL(
+        photoCropImageUrl
+      );
+    }
+
+    setSelectedPhotos([]);
+    setPhotoCropQueue([]);
+    setPhotoCropImageUrl(null);
+    setPhotoOriginalFileName("");
+    setPhotoInputKey(
+      (current) => current + 1
+    );
+  }
+
+  function removeSelectedPhoto(
+    photoId
+  ) {
+    setSelectedPhotos(
+      (currentPhotos) => {
+        const photoToRemove =
+          currentPhotos.find(
+            (photo) =>
+              photo.id === photoId
+          );
+
+        if (photoToRemove) {
+          URL.revokeObjectURL(
+            photoToRemove.previewUrl
+          );
+        }
+
+        return currentPhotos.filter(
+          (photo) =>
+            photo.id !== photoId
+        );
+      }
+    );
+  }
+
+  function openNextPhotoForCropping(
+    queue
+  ) {
+    const [nextPhoto, ...rest] =
+      queue;
+
+    setPhotoCropQueue(rest);
+
+    if (!nextPhoto) {
+      setPhotoCropImageUrl(null);
+      setPhotoOriginalFileName("");
+      return;
+    }
+
+    setPhotoCropImageUrl(
+      nextPhoto.url
+    );
+    setPhotoOriginalFileName(
+      nextPhoto.name
+    );
+  }
+
+  function handlePhotoChange(
     event
   ) {
-    const file =
-      event.target.files?.[0];
+    const files = Array.from(
+      event.target.files || []
+    );
 
-    if (!file) {
-      setSelectedPhoto(null);
+    if (files.length === 0) {
+      return;
+    }
+
+    const maximumSize =
+      20 * 1024 * 1024;
+
+    const validFiles = [];
+    const rejectedFiles = [];
+
+    files.forEach((file) => {
+      if (
+        !file.type.startsWith(
+          "image/"
+        )
+      ) {
+        rejectedFiles.push(
+          `${file.name} — to nie jest zdjęcie`
+        );
+        return;
+      }
+
+      if (file.size > maximumSize) {
+        rejectedFiles.push(
+          `${file.name} — przekracza 20 MB`
+        );
+        return;
+      }
+
+      validFiles.push({
+        id: `${Date.now()}-${Math.random()}`,
+        name: file.name,
+        url: URL.createObjectURL(
+          file
+        ),
+      });
+    });
+
+    if (validFiles.length === 0) {
+      setPhotoMessage(
+        rejectedFiles.join("; ") ||
+          "Nie wybrano prawidłowych zdjęć."
+      );
+      event.target.value = "";
+      return;
+    }
+
+    const combinedQueue = [
+      ...photoCropQueue,
+      ...validFiles,
+    ];
+
+    if (photoCropImageUrl) {
+      setPhotoCropQueue(
+        combinedQueue
+      );
+    } else {
+      openNextPhotoForCropping(
+        combinedQueue
+      );
+    }
+
+    setPhotoMessage(
+      rejectedFiles.length > 0
+        ? `Wybrano ${validFiles.length} zdjęć. Pominięto: ${rejectedFiles.join("; ")}`
+        : `Wybrano ${validFiles.length} zdjęć. Ustaw kadr każdego z nich.`
+    );
+
+    event.target.value = "";
+  }
+
+  function handlePhotoCropCancel() {
+    if (photoCropImageUrl) {
+      URL.revokeObjectURL(
+        photoCropImageUrl
+      );
+    }
+
+    setPhotoCropImageUrl(null);
+    setPhotoOriginalFileName("");
+
+    if (photoCropQueue.length > 0) {
+      openNextPhotoForCropping(
+        photoCropQueue
+      );
+
+      setPhotoMessage(
+        "Pominięto to zdjęcie. Ustaw kadr następnego."
+      );
+    } else {
+      setPhotoMessage(
+        selectedPhotos.length > 0
+          ? "Kadrowanie zakończone. Możesz wysłać wybrane zdjęcia."
+          : "Anulowano wybór zdjęć."
+      );
+    }
+  }
+
+  async function handlePhotoCropSave(
+    croppedFile
+  ) {
+    if (!croppedFile) {
+      setPhotoMessage(
+        "Nie udało się przygotować zdjęcia."
+      );
       return;
     }
 
     try {
-      const prepared =
-        await prepareImageFile(file);
+      const finalFile = new File(
+        [croppedFile],
+        photoOriginalFileName ||
+          `zdjecie-${Date.now()}.jpg`,
+        {
+          type:
+            croppedFile.type ||
+            "image/jpeg",
+          lastModified: Date.now(),
+        }
+      );
 
-      setSelectedPhoto(prepared);
-      setPhotoMessage("");
+      const preparedPhoto =
+        await prepareImageFile(
+          finalFile
+        );
+
+     const previewUrl =
+  URL.createObjectURL(
+    finalFile
+  );
+
+      setSelectedPhotos(
+        (currentPhotos) => [
+          ...currentPhotos,
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            file: preparedPhoto,
+            previewUrl,
+            name: finalFile.name,
+          },
+        ]
+      );
+
+      if (photoCropImageUrl) {
+        URL.revokeObjectURL(
+          photoCropImageUrl
+        );
+      }
+
+      setPhotoCropImageUrl(null);
+      setPhotoOriginalFileName("");
+
+      if (photoCropQueue.length > 0) {
+        openNextPhotoForCropping(
+          photoCropQueue
+        );
+
+        setPhotoMessage(
+          `Kadr zapisany. Pozostało do wykadrowania: ${photoCropQueue.length}.`
+        );
+      } else {
+        setPhotoMessage(
+          "Wszystkie kadry zapisane. Możesz wysłać zdjęcia."
+        );
+      }
     } catch (error) {
-      event.target.value = "";
-      setSelectedPhoto(null);
-      setPhotoMessage(error.message);
+      console.error(
+        "Błąd przygotowania zdjęcia:",
+        error
+      );
+
+      setPhotoMessage(
+        `Nie udało się przygotować zdjęcia: ${error.message}`
+      );
     }
   }
 
@@ -830,60 +1191,89 @@ function PlaceDetailsPage({
 
     if (!user) {
       setPhotoMessage(
-        "Zaloguj się, aby dodać zdjęcie."
+        "Zaloguj się, aby dodać zdjęcia."
       );
-
       onOpenAuth?.();
       return;
     }
 
-    if (!selectedPhoto) {
+    if (
+      selectedPhotos.length === 0
+    ) {
       setPhotoMessage(
-        "Wybierz zdjęcie."
+        "Najpierw wybierz i wykadruj co najmniej jedno zdjęcie."
+      );
+      return;
+    }
+
+    if (photoCropImageUrl) {
+      setPhotoMessage(
+        "Najpierw zakończ kadrowanie wszystkich zdjęć."
       );
       return;
     }
 
     const form =
       event.currentTarget;
-
     const formData =
       new FormData(form);
 
+    setSubmittingPhotos(true);
     setPhotoMessage(
-      "Wysyłanie zdjęcia..."
+      `Wysyłanie 0 z ${selectedPhotos.length} zdjęć...`
     );
 
     try {
-      await submitPlacePhoto({
-        placeId: place.id,
-        image: selectedPhoto,
+      for (
+        let index = 0;
+        index <
+        selectedPhotos.length;
+        index += 1
+      ) {
+        setPhotoMessage(
+          `Wysyłanie ${index + 1} z ${selectedPhotos.length} zdjęć...`
+        );
 
-        category:
-          formData.get(
-            "photoCategory"
-          ),
+        await submitPlacePhoto({
+          placeId: place.id,
+          image:
+            selectedPhotos[index]
+              .file,
+          category:
+            formData.get(
+              "photoCategory"
+            ),
+          takenAt:
+            formData.get(
+              "takenAt"
+            ),
+        });
+      }
 
-        takenAt:
-          formData.get(
-            "takenAt"
-          ),
-      });
+      const sentCount =
+        selectedPhotos.length;
 
       form.reset();
-      setSelectedPhoto(null);
+      setPhotoCategory("");
+      clearAllSelectedPhotos();
 
       setPhotoMessage(
-        "Zdjęcie zostało wysłane i czeka na zatwierdzenie przez administratora."
+        `${sentCount} zdjęć zostało wysłanych i czeka na zatwierdzenie przez administratora.`
       );
     } catch (error) {
+      console.error(
+        "Błąd wysyłania zdjęć:",
+        error
+      );
+
       setPhotoMessage(
         `Błąd: ${error.message}`
       );
+    } finally {
+      setSubmittingPhotos(false);
     }
   }
-
-  async function handleReportPhoto(
+    async function handleReportPhoto(
     photoId
   ) {
     if (!user) {
@@ -895,11 +1285,12 @@ function PlaceDetailsPage({
       return;
     }
 
-    const reason = window.prompt(
-      `Podaj powód zgłoszenia:\n\n${PHOTO_REPORT_REASONS.join(
-        "\n"
-      )}`
-    );
+    const reason =
+      window.prompt(
+        `Podaj powód zgłoszenia:\n\n${PHOTO_REPORT_REASONS.join(
+          "\n"
+        )}`
+      );
 
     if (!reason?.trim()) {
       return;
@@ -930,9 +1321,10 @@ function PlaceDetailsPage({
   async function handleDeleteOwnReport(
     reportId
   ) {
-    const confirmed = window.confirm(
-      "Czy na pewno chcesz usunąć tę aktualizację?"
-    );
+    const confirmed =
+      window.confirm(
+        "Czy na pewno chcesz usunąć tę aktualizację?"
+      );
 
     if (!confirmed) {
       return;
@@ -970,137 +1362,150 @@ function PlaceDetailsPage({
       </button>
 
       <section
-  style={{
-    position: "relative",
-    width: "min(1180px, 100%)",
-    margin: "18px auto 0",
-  }}
->
-  <img
-    src={
-      place.image_url ||
-      "https://picsum.photos/1200/600"
-    }
-    alt={place.name}
-    className="placeHero"
-    style={{
-      width: "100%",
-      aspectRatio: "16 / 7",
-      maxHeight: "520px",
-      minHeight: "300px",
-      objectFit: "cover",
-      objectPosition: "center",
-      borderRadius: "24px",
-      display: "block",
-    }}
-  />
+        style={{
+          position: "relative",
+          width: "min(1180px, 100%)",
+          margin: "18px auto 0",
+        }}
+      >
+        <img
+          src={
+            place.image_url ||
+            "https://picsum.photos/1200/600"
+          }
+          alt={place.name}
+          className="placeHero"
+          style={{
+            width: "100%",
+            aspectRatio: "16 / 7",
+            maxHeight: "520px",
+            minHeight: "300px",
+            objectFit: "cover",
+            objectPosition: "center",
+            borderRadius: "24px",
+            display: "block",
+          }}
+        />
 
-  {warnings.length > 0 && (
-    <div
-      style={{
-        position: "absolute",
-        top: "18px",
-        left: "18px",
-        maxWidth: "calc(100% - 36px)",
-        padding: "12px 16px",
-        borderRadius: "14px",
-        background:
-          "rgba(168, 45, 37, 0.94)",
-        color: "#ffffff",
-        fontWeight: 800,
-        lineHeight: 1.45,
-      }}
-    >
-      ⚠️ Aktywne ostrzeżenie użytkowników
-    </div>
-  )}
-</section>
+        {warnings.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: "18px",
+              left: "18px",
+              maxWidth:
+                "calc(100% - 36px)",
+              padding: "12px 16px",
+              borderRadius: "14px",
+              background:
+                "rgba(168, 45, 37, 0.94)",
+              color: "#ffffff",
+              fontWeight: 800,
+              lineHeight: 1.45,
+            }}
+          >
+            ⚠️ Aktywne ostrzeżenie
+            użytkowników
+          </div>
+        )}
+      </section>
 
-     <section
-  style={{
-    marginTop: "28px",
-    textAlign: "center",
-  }}
->
-  <h1
-  style={{
-    width: "min(900px, 100%)",
-    margin: "0 auto",
-    textAlign: "center",
-    fontSize: "clamp(40px, 5vw, 56px)",
-    fontWeight: 800,
-    lineHeight: 1.08,
-  }}
->
-  {place.name}
-</h1>
+      <section
+        style={{
+          marginTop: "28px",
+          textAlign: "center",
+        }}
+      >
+        <h1
+          style={{
+            width:
+              "min(900px, 100%)",
+            margin: "0 auto",
+            textAlign: "center",
+            fontSize:
+              "clamp(40px, 5vw, 56px)",
+            fontWeight: 800,
+            lineHeight: 1.08,
+          }}
+        >
+          {place.name}
+        </h1>
 
-  {place.city && (
-    <p
-      style={{
-        marginTop: "10px",
-        fontSize: "20px",
-        color: "#5c6c66",
-      }}
-    >
-      📍 {place.city}
-    </p>
-  )}
+        {place.city && (
+          <p
+            style={{
+              marginTop: "10px",
+              fontSize: "20px",
+              color: "#5c6c66",
+            }}
+          >
+            📍 {place.city}
+          </p>
+        )}
 
-  <p
-    style={{
-      marginTop: "10px",
-      color: "#6b746f",
-    }}
-  >
-    Ostatnia aktualizacja danych stałych:
-    <strong>
-      {" "}
-      {formatStaticUpdateDate(
-        place.static_data_updated_at
-      )}
-    </strong>
-  </p>
+        <p
+          style={{
+            marginTop: "10px",
+            color: "#6b746f",
+          }}
+        >
+          Ostatnia aktualizacja danych
+          stałych:
+          <strong>
+            {" "}
+            {formatStaticUpdateDate(
+              place.static_data_updated_at
+            )}
+          </strong>
+        </p>
 
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      gap: "14px",
-      flexWrap: "wrap",
-      marginTop: "22px",
-    }}
-  >
-    <button
-      type="button"
-      className="addPhotoButton"
-      onClick={handleToggleFavorite}
-    >
-      {favorite
-        ? "❤️ Usuń z ulubionych"
-        : "🤍 Zapisz miejsce"}
-    </button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: "14px",
+            flexWrap: "wrap",
+            marginTop: "22px",
+          }}
+        >
+          <button
+            type="button"
+            className="addPhotoButton"
+            onClick={
+              handleToggleFavorite
+            }
+          >
+            {favorite
+              ? "❤️ Usuń z ulubionych"
+              : "🤍 Zapisz miejsce"}
+          </button>
 
-    <button
-      type="button"
-      className="approveButton"
-      onClick={() => setVisitModalOpen(true)}
-    >
-      ✅ Byłam tutaj
-    </button>
+          <button
+            type="button"
+            className="approveButton"
+            onClick={() =>
+              setVisitModalOpen(true)
+            }
+          >
+            ✅ Byłam tutaj
+          </button>
 
-    <button
-      type="button"
-      className="addPlaceButton"
-      style={{ width: "auto" }}
-      onClick={() =>
-        setLiveReportModalOpen(true)
-      }
-    >
-      🔴 Dodaj aktualizację
-    </button>
-  </div>
-</section>
+          <button
+            type="button"
+            className="addPlaceButton"
+            style={{
+              width: "auto",
+            }}
+            onClick={() =>
+              setLiveReportModalOpen(
+                true
+              )
+            }
+          >
+            🔴 Dodaj aktualizację
+          </button>
+        </div>
+      </section>
 
       {favoriteMessage && (
         <p className="formMessage">
@@ -1114,16 +1519,17 @@ function PlaceDetailsPage({
         </p>
       )}
 
-     {place.important_info && (
-  <section
-    id="overview-important"
-    className="overviewScrollSection"
-    style={{
+      {place.important_info && (
+        <section
+          id="overview-important"
+          className="overviewScrollSection"
+          style={{
             marginTop: "26px",
             padding: "20px",
             borderRadius: "18px",
             background: "#fffbea",
-            border: "1px solid #ead88c",
+            border:
+              "1px solid #ead88c",
           }}
         >
           <strong
@@ -1154,7 +1560,8 @@ function PlaceDetailsPage({
             padding: "22px",
             borderRadius: "18px",
             background: "#fff1ef",
-            border: "1px solid #e7aaa4",
+            border:
+              "1px solid #e7aaa4",
           }}
         >
           <h2
@@ -1172,69 +1579,81 @@ function PlaceDetailsPage({
               gap: "14px",
             }}
           >
-            {warnings.map((warning) => (
-              <article
-                key={warning.id}
-                style={{
-                  padding: "16px",
-                  borderRadius: "14px",
-                  background: "#ffffff",
-                }}
-              >
-                {warning.algae_status && (
-                  <p
-                    style={{
-                      margin: "0 0 7px",
-                    }}
-                  >
-                    🦠{" "}
-                    <strong>
-                      {warning.algae_status}
-                    </strong>
-                  </p>
-                )}
+            {warnings.map(
+              (warning) => (
+                <article
+                  key={warning.id}
+                  style={{
+                    padding: "16px",
+                    borderRadius:
+                      "14px",
+                    background:
+                      "#ffffff",
+                  }}
+                >
+                  {warning.algae_status && (
+                    <p
+                      style={{
+                        margin:
+                          "0 0 7px",
+                      }}
+                    >
+                      🦠{" "}
+                      <strong>
+                        {
+                          warning.algae_status
+                        }
+                      </strong>
+                    </p>
+                  )}
 
-                {warning.entrance_status ===
-                  "Wejście zamknięte" && (
-                  <p
-                    style={{
-                      margin: "0 0 7px",
-                    }}
-                  >
-                    🚫{" "}
-                    <strong>
-                      Wejście do wody jest
-                      zgłoszone jako zamknięte.
-                    </strong>
-                  </p>
-                )}
+                  {warning.entrance_status ===
+                    "Wejście zamknięte" && (
+                    <p
+                      style={{
+                        margin:
+                          "0 0 7px",
+                      }}
+                    >
+                      🚫{" "}
+                      <strong>
+                        Wejście do wody
+                        jest zgłoszone jako
+                        zamknięte.
+                      </strong>
+                    </p>
+                  )}
 
-                {warning.swimming_ban ===
-                  true && (
-                  <p
-                    style={{
-                      margin: "0 0 7px",
-                    }}
-                  >
-                    ⛔{" "}
-                    <strong>
-                      Zgłoszono zakaz kąpieli.
-                    </strong>
-                  </p>
-                )}
+                  {warning.swimming_ban ===
+                    true && (
+                    <p
+                      style={{
+                        margin:
+                          "0 0 7px",
+                      }}
+                    >
+                      ⛔{" "}
+                      <strong>
+                        Zgłoszono zakaz
+                        kąpieli.
+                      </strong>
+                    </p>
+                  )}
 
-                {warning.note && (
-                  <p
-                    style={{
-                      margin: 0,
-                      lineHeight: 1.55,
-                    }}
-                  >
-                    💬 {warning.note}
-                  </p>
-                )}
-              </article>
-            ))}
+                  {warning.note && (
+                    <p
+                      style={{
+                        margin: 0,
+                        lineHeight:
+                          1.55,
+                      }}
+                    >
+                      💬 {warning.note}
+                    </p>
+                  )}
+                </article>
+              )
+            )}
           </div>
 
           <p
@@ -1246,8 +1665,8 @@ function PlaceDetailsPage({
           >
             Ostrzeżenia pochodzą od
             użytkowników i nie zastępują
-            oficjalnych komunikatów służb lub
-            zarządcy kąpieliska.
+            oficjalnych komunikatów służb
+            lub zarządcy kąpieliska.
           </p>
         </section>
       )}
@@ -1257,10 +1676,13 @@ function PlaceDetailsPage({
         onChange={setActiveTab}
         reviewsCount={reviews.length}
         photosCount={photos.length}
-        reportsCount={allReports.length}
+        reportsCount={
+          allReports.length
+        }
       />
 
-            {activeTab === "overview" && (
+      {activeTab ===
+        "overview" && (
         <div className="overviewLayout">
           <OverviewSidebar />
 
@@ -1288,7 +1710,9 @@ function PlaceDetailsPage({
                   />
 
                   <PlaceStatistics
-                    statistics={statistics}
+                    statistics={
+                      statistics
+                    }
                   />
                 </>
               )}
@@ -1299,8 +1723,12 @@ function PlaceDetailsPage({
               className="overviewScrollSection"
             >
               <PlaceLiveStatus
-                reports={activeReports}
-                loading={loadingReports}
+                reports={
+                  activeReports
+                }
+                loading={
+                  loadingReports
+                }
                 onOpenPublicProfile={
                   onOpenPublicProfile
                 }
@@ -1342,51 +1770,62 @@ function PlaceDetailsPage({
                   <div>
                     <h2
                       style={{
-                        margin: "0 0 8px",
-                        fontSize: "26px",
+                        margin:
+                          "0 0 8px",
+                        fontSize:
+                          "26px",
                       }}
                     >
-                      ✅ Aktualność informacji
+                      ✅ Aktualność
+                      informacji
                     </h2>
 
                     {loadingVerification ? (
                       <p>
-                        Ładowanie potwierdzeń...
+                        Ładowanie
+                        potwierdzeń...
                       </p>
                     ) : verificationInfo.verified ? (
                       <p
                         style={{
                           margin: 0,
-                          lineHeight: 1.6,
+                          lineHeight:
+                            1.6,
                         }}
                       >
                         <strong>
-                          Zweryfikowane przez
-                          społeczność
+                          Zweryfikowane
+                          przez społeczność
                         </strong>
                         {" · "}
                         {
                           verificationInfo.uniqueRecentCount
                         }{" "}
-                        unikalnych osób potwierdziło
-                        dane w ciągu ostatnich 30 dni.
+                        unikalnych osób
+                        potwierdziło dane w
+                        ciągu ostatnich 30
+                        dni.
                       </p>
                     ) : (
                       <p
                         style={{
                           margin: 0,
-                          lineHeight: 1.6,
-                          color: "#5c6c66",
+                          lineHeight:
+                            1.6,
+                          color:
+                            "#5c6c66",
                         }}
                       >
-                        Aktualność potwierdziło{" "}
+                        Aktualność
+                        potwierdziło{" "}
                         <strong>
                           {
                             verificationInfo.uniqueRecentCount
                           }
                         </strong>{" "}
-                        unikalnych użytkowników w
-                        ciągu ostatnich 30 dni.
+                        unikalnych
+                        użytkowników w ciągu
+                        ostatnich 30 dni.
                       </p>
                     )}
                   </div>
@@ -1398,7 +1837,9 @@ function PlaceDetailsPage({
                       submittingVerification ||
                       !verificationInfo.canCurrentUserVerify
                     }
-                    onClick={handleVerifyPlace}
+                    onClick={
+                      handleVerifyPlace
+                    }
                   >
                     {submittingVerification
                       ? "Zapisywanie..."
@@ -1412,18 +1853,21 @@ function PlaceDetailsPage({
 
                 {verificationMessage && (
                   <p className="formMessage">
-                    {verificationMessage}
+                    {
+                      verificationMessage
+                    }
                   </p>
                 )}
               </section>
             </section>
 
-            <PlaceAmenities place={place} />
+            <PlaceAmenities
+              place={place}
+            />
           </div>
         </div>
       )}
-
-      {activeTab === "reviews" && (
+            {activeTab === "reviews" && (
         <section>
           <div
             className="sectionHeader"
@@ -1796,8 +2240,9 @@ function PlaceDetailsPage({
                   color: "#5c6c66",
                 }}
               >
-                Zdjęcia pojawiają się po zatwierdzeniu
-                przez administratora.
+                Zdjęcia pojawiają się po
+                zatwierdzeniu przez
+                administratora.
               </p>
             </div>
 
@@ -1820,11 +2265,14 @@ function PlaceDetailsPage({
                 <select
                   value={photoCategory}
                   onChange={(event) =>
-                    setPhotoCategory(event.target.value)
+                    setPhotoCategory(
+                      event.target.value
+                    )
                   }
                   style={{
                     padding: "11px 13px",
-                    border: "1px solid #d8e2de",
+                    border:
+                      "1px solid #d8e2de",
                     borderRadius: "12px",
                     background: "#ffffff",
                   }}
@@ -1864,7 +2312,8 @@ function PlaceDetailsPage({
                   }
                   style={{
                     padding: "11px 13px",
-                    border: "1px solid #d8e2de",
+                    border:
+                      "1px solid #d8e2de",
                     borderRadius: "12px",
                     background: "#ffffff",
                   }}
@@ -1896,23 +2345,147 @@ function PlaceDetailsPage({
                 Zdjęcie
 
                 <input
+                  key={photoInputKey}
                   type="file"
                   accept="image/*"
+                  multiple
                   onChange={handlePhotoChange}
-                  required
                 />
 
                 <small>
-                  Maksymalny rozmiar zdjęcia: 5 MB.
+                  Możesz wybrać kilka zdjęć naraz.
+                  Każde może mieć maksymalnie 20 MB.
+                  Następnie ustawisz osobny kadr
+                  każdego zdjęcia.
                 </small>
               </label>
+
+              {selectedPhotos.length > 0 && (
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "14px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent:
+                        "space-between",
+                      alignItems: "center",
+                      gap: "12px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <strong>
+                      Wybrane zdjęcia: {
+                        selectedPhotos.length
+                      }
+                    </strong>
+
+                    <button
+                      type="button"
+                      className="backButton"
+                      onClick={
+                        clearAllSelectedPhotos
+                      }
+                    >
+                      Usuń wszystkie
+                    </button>
+                  </div>
+
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fit, minmax(150px, 220px))",
+                      gap: "14px",
+                    }}
+                  >
+                    {selectedPhotos.map(
+                      (selectedPhoto) => (
+                        <article
+                          key={
+                            selectedPhoto.id
+                          }
+                          style={{
+                            overflow: "hidden",
+                            border:
+                              "1px solid #d8e2de",
+                            borderRadius:
+                              "14px",
+                            background:
+                              "#ffffff",
+                          }}
+                        >
+                          <img
+                            src={
+                              selectedPhoto.previewUrl
+                            }
+                            alt={`Podgląd: ${selectedPhoto.name}`}
+                            style={{
+                              width: "100%",
+                              height: "160px",
+                              display: "block",
+                              objectFit: "cover",
+                            }}
+                          />
+
+                          <div
+                            style={{
+                              display: "grid",
+                              gap: "9px",
+                              padding: "11px",
+                            }}
+                          >
+                            <small
+                              style={{
+                                overflow:
+                                  "hidden",
+                                textOverflow:
+                                  "ellipsis",
+                                whiteSpace:
+                                  "nowrap",
+                              }}
+                              title={
+                                selectedPhoto.name
+                              }
+                            >
+                              {
+                                selectedPhoto.name
+                              }
+                            </small>
+
+                            <button
+                              type="button"
+                              className="backButton"
+                              onClick={() =>
+                                removeSelectedPhoto(
+                                  selectedPhoto.id
+                                )
+                              }
+                            >
+                              Usuń
+                            </button>
+                          </div>
+                        </article>
+                      )
+                    )}
+                  </div>
+                </div>
+              )}
 
               <label>
                 Kategoria zdjęcia
 
                 <select
                   name="photoCategory"
-                  defaultValue=""
+                  value={photoCategory}
+                  onChange={(event) =>
+                    setPhotoCategory(
+                      event.target.value
+                    )
+                  }
                 >
                   <option value="">
                     Wybierz kategorię
@@ -1932,7 +2505,8 @@ function PlaceDetailsPage({
               </label>
 
               <label>
-                Data wykonania zdjęcia — opcjonalnie
+                Data wykonania zdjęcia —
+                opcjonalnie
 
                 <input
                   type="datetime-local"
@@ -1943,26 +2517,25 @@ function PlaceDetailsPage({
                 />
               </label>
 
-              {selectedPhoto && (
-                <p>
-                  Wybrane zdjęcie:{" "}
-                  <strong>
-                    {selectedPhoto.name}
-                  </strong>
-                </p>
-              )}
-
               <button
                 type="submit"
                 className="addPlaceButton"
+                disabled={
+                  submittingPhotos
+                }
               >
-                Wyślij zdjęcie
+                {submittingPhotos
+                  ? "Wysyłanie..."
+                  : selectedPhotos.length > 1
+                    ? `Wyślij ${selectedPhotos.length} zdjęć`
+                    : "Wyślij zdjęcie"}
               </button>
             </form>
           ) : (
             <div className="emptyPhotos">
               <p>
-                Zaloguj się, aby dodać zdjęcie.
+                Zaloguj się, aby dodać
+                zdjęcie.
               </p>
 
               <button
@@ -1980,8 +2553,7 @@ function PlaceDetailsPage({
               {photoMessage}
             </p>
           )}
-
-          {loadingPhotos ? (
+                    {loadingPhotos ? (
             <p>Ładowanie zdjęć...</p>
           ) : sortedPhotos.filter(
               (photo) =>
@@ -1991,7 +2563,8 @@ function PlaceDetailsPage({
             ).length === 0 ? (
             <div className="emptyPhotos">
               <p>
-                Nie ma jeszcze zdjęć w tej kategorii.
+                Nie ma jeszcze zdjęć w tej
+                kategorii.
               </p>
             </div>
           ) : (
@@ -2043,14 +2616,19 @@ function PlaceDetailsPage({
                         }}
                       >
                         <UserAvatar
-                          profile={photo.profiles}
+                          profile={
+                            photo.profiles
+                          }
                           size={38}
                           onClick={
-                            photo.profiles?.id &&
+                            photo.profiles
+                              ?.id &&
                             onOpenPublicProfile
                               ? () =>
                                   onOpenPublicProfile(
-                                    photo.profiles.id
+                                    photo
+                                      .profiles
+                                      .id
                                   )
                               : undefined
                           }
@@ -2060,12 +2638,14 @@ function PlaceDetailsPage({
                           <button
                             type="button"
                             disabled={
-                              !photo.profiles?.id ||
+                              !photo.profiles
+                                ?.id ||
                               !onOpenPublicProfile
                             }
                             onClick={() =>
                               onOpenPublicProfile?.(
-                                photo.profiles?.id
+                                photo.profiles
+                                  ?.id
                               )
                             }
                             style={{
@@ -2076,7 +2656,8 @@ function PlaceDetailsPage({
                               font: "inherit",
                               fontWeight: 800,
                               cursor:
-                                photo.profiles?.id &&
+                                photo.profiles
+                                  ?.id &&
                                 onOpenPublicProfile
                                   ? "pointer"
                                   : "default",
@@ -2089,9 +2670,12 @@ function PlaceDetailsPage({
 
                           <p
                             style={{
-                              margin: "4px 0 0",
-                              color: "#5c6c66",
-                              fontSize: "14px",
+                              margin:
+                                "4px 0 0",
+                              color:
+                                "#5c6c66",
+                              fontSize:
+                                "14px",
                             }}
                           >
                             {photo.photo_category ||
@@ -2102,7 +2686,8 @@ function PlaceDetailsPage({
 
                       <p
                         style={{
-                          margin: "15px 0 0",
+                          margin:
+                            "15px 0 0",
                           color: "#5c6c66",
                           fontSize: "14px",
                         }}
@@ -2165,9 +2750,10 @@ function PlaceDetailsPage({
                   lineHeight: 1.55,
                 }}
               >
-                Raporty starsze niż 6 godzin nie są
-                już wyświetlane jako aktualna sytuacja,
-                ale pozostają w historii miejsca.
+                Raporty starsze niż 6 godzin
+                nie są już wyświetlane jako
+                aktualna sytuacja, ale
+                pozostają w historii miejsca.
               </p>
             </div>
 
@@ -2178,7 +2764,9 @@ function PlaceDetailsPage({
                 width: "auto",
               }}
               onClick={() =>
-                setLiveReportModalOpen(true)
+                setLiveReportModalOpen(
+                  true
+                )
               }
             >
               🔴 Dodaj aktualizację
@@ -2186,11 +2774,14 @@ function PlaceDetailsPage({
           </div>
 
           {loadingReports ? (
-            <p>Ładowanie raportów...</p>
+            <p>
+              Ładowanie raportów...
+            </p>
           ) : allReports.length === 0 ? (
             <div className="emptyPhotos">
               <p>
-                Nie ma jeszcze żadnych raportów.
+                Nie ma jeszcze żadnych
+                raportów.
               </p>
             </div>
           ) : (
@@ -2201,286 +2792,313 @@ function PlaceDetailsPage({
                 marginTop: "26px",
               }}
             >
-              {allReports.map((report) => (
-                <article
-                  key={report.id}
-                  className="adminCard"
-                  style={{
-                    padding: "22px",
-                  }}
-                >
-                  <div
+              {allReports.map(
+                (report) => (
+                  <article
+                    key={report.id}
+                    className="adminCard"
                     style={{
-                      display: "flex",
-                      justifyContent:
-                        "space-between",
-                      alignItems: "flex-start",
-                      gap: "18px",
-                      flexWrap: "wrap",
+                      padding: "22px",
                     }}
                   >
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
+                        justifyContent:
+                          "space-between",
+                        alignItems:
+                          "flex-start",
+                        gap: "18px",
+                        flexWrap: "wrap",
                       }}
                     >
-                      <UserAvatar
-                        profile={report.profiles}
-                        onClick={
-                          report.profiles?.id &&
-                          onOpenPublicProfile
-                            ? () =>
-                                onOpenPublicProfile(
-                                  report.profiles.id
-                                )
-                            : undefined
-                        }
-                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems:
+                            "center",
+                          gap: "12px",
+                        }}
+                      >
+                        <UserAvatar
+                          profile={
+                            report.profiles
+                          }
+                          onClick={
+                            report.profiles
+                              ?.id &&
+                            onOpenPublicProfile
+                              ? () =>
+                                  onOpenPublicProfile(
+                                    report
+                                      .profiles
+                                      .id
+                                  )
+                              : undefined
+                          }
+                        />
 
-                      <div>
+                        <div>
+                          <button
+                            type="button"
+                            disabled={
+                              !report.profiles
+                                ?.id ||
+                              !onOpenPublicProfile
+                            }
+                            onClick={() =>
+                              onOpenPublicProfile?.(
+                                report
+                                  .profiles
+                                  ?.id
+                              )
+                            }
+                            style={{
+                              border: "none",
+                              padding: 0,
+                              background:
+                                "transparent",
+                              font: "inherit",
+                              fontWeight: 800,
+                              cursor:
+                                report.profiles
+                                  ?.id &&
+                                onOpenPublicProfile
+                                  ? "pointer"
+                                  : "default",
+                            }}
+                          >
+                            {report.profiles
+                              ?.username ||
+                              "Użytkownik SUPMap"}
+                          </button>
+
+                          <p
+                            style={{
+                              margin:
+                                "5px 0 0",
+                              color:
+                                "#5c6c66",
+                            }}
+                          >
+                            {new Date(
+                              report.created_at
+                            ).toLocaleString(
+                              "pl-PL",
+                              {
+                                dateStyle:
+                                  "medium",
+                                timeStyle:
+                                  "short",
+                              }
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {report.user_id ===
+                        user?.id && (
                         <button
                           type="button"
-                          disabled={
-                            !report.profiles?.id ||
-                            !onOpenPublicProfile
-                          }
+                          className="rejectButton"
                           onClick={() =>
-                            onOpenPublicProfile?.(
-                              report.profiles?.id
+                            handleDeleteOwnReport(
+                              report.id
                             )
                           }
-                          style={{
-                            border: "none",
-                            padding: 0,
-                            background:
-                              "transparent",
-                            font: "inherit",
-                            fontWeight: 800,
-                            cursor:
-                              report.profiles?.id &&
-                              onOpenPublicProfile
-                                ? "pointer"
-                                : "default",
-                          }}
                         >
-                          {report.profiles
-                            ?.username ||
-                            "Użytkownik SUPMap"}
+                          Usuń własny raport
                         </button>
-
-                        <p
-                          style={{
-                            margin: "5px 0 0",
-                            color: "#5c6c66",
-                          }}
-                        >
-                          {new Date(
-                            report.created_at
-                          ).toLocaleString(
-                            "pl-PL",
-                            {
-                              dateStyle:
-                                "medium",
-                              timeStyle:
-                                "short",
-                            }
-                          )}
-                        </p>
-                      </div>
+                      )}
                     </div>
 
-                    {report.user_id ===
-                      user?.id && (
-                      <button
-                        type="button"
-                        className="rejectButton"
-                        onClick={() =>
-                          handleDeleteOwnReport(
-                            report.id
-                          )
-                        }
-                      >
-                        Usuń własny raport
-                      </button>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(170px, 1fr))",
-                      gap: "12px",
-                      marginTop: "18px",
-                    }}
-                  >
-                    {report.water_temperature !==
-                      null && (
-                      <div className="infoCard">
-                        🌡️ Woda:{" "}
-                        <strong>
-                          {
-                            report.water_temperature
-                          }
-                          °C
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.air_temperature !==
-                      null && (
-                      <div className="infoCard">
-                        🌤️ Powietrze:{" "}
-                        <strong>
-                          {
-                            report.air_temperature
-                          }
-                          °C
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.wind_level && (
-                      <div className="infoCard">
-                        💨{" "}
-                        <strong>
-                          {report.wind_level}
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.water_condition && (
-                      <div className="infoCard">
-                        🌊{" "}
-                        <strong>
-                          {
-                            report.water_condition
-                          }
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.crowd_level && (
-                      <div className="infoCard">
-                        👥{" "}
-                        <strong>
-                          {report.crowd_level}
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.parking_status && (
-                      <div className="infoCard">
-                        🚗{" "}
-                        <strong>
-                          {
-                            report.parking_status
-                          }
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.toilets_open && (
-                      <div className="infoCard">
-                        🚻{" "}
-                        <strong>
-                          {report.toilets_open}
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.gastronomy_open && (
-                      <div className="infoCard">
-                        🍔{" "}
-                        <strong>
-                          {
-                            report.gastronomy_open
-                          }
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.algae_status && (
-                      <div className="infoCard">
-                        🦠{" "}
-                        <strong>
-                          {report.algae_status}
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.rain_status && (
-                      <div className="infoCard">
-                        🌧️{" "}
-                        <strong>
-                          {report.rain_status}
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.entrance_status && (
-                      <div className="infoCard">
-                        🚶{" "}
-                        <strong>
-                          {
-                            report.entrance_status
-                          }
-                        </strong>
-                      </div>
-                    )}
-
-                    {report.swimming_ban !==
-                      null && (
-                      <div className="infoCard">
-                        ⛔ Zakaz kąpieli:{" "}
-                        <strong>
-                          {report.swimming_ban
-                            ? "Tak"
-                            : "Nie"}
-                        </strong>
-                      </div>
-                    )}
-                  </div>
-
-                  {report.note && (
                     <div
                       style={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(170px, 1fr))",
+                        gap: "12px",
                         marginTop: "18px",
-                        padding: "16px",
-                        borderRadius: "14px",
-                        background: "#f4f7f6",
-                        lineHeight: 1.6,
                       }}
                     >
-                      💬 {report.note}
-                    </div>
-                  )}
+                      {report.water_temperature !==
+                        null && (
+                        <div className="infoCard">
+                          🌡️ Woda:{" "}
+                          <strong>
+                            {
+                              report.water_temperature
+                            }
+                            °C
+                          </strong>
+                        </div>
+                      )}
 
-                  {report.live_image_url && (
-                    <img
-                      src={
-                        report.live_image_url
-                      }
-                      alt={`Aktualizacja z miejsca ${place.name}`}
-                      style={{
-                        width: "100%",
-                        maxHeight: "420px",
-                        objectFit: "cover",
-                        borderRadius: "16px",
-                        marginTop: "18px",
-                      }}
-                    />
-                  )}
-                </article>
-              ))}
+                      {report.air_temperature !==
+                        null && (
+                        <div className="infoCard">
+                          🌤️ Powietrze:{" "}
+                          <strong>
+                            {
+                              report.air_temperature
+                            }
+                            °C
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.wind_level && (
+                        <div className="infoCard">
+                          💨{" "}
+                          <strong>
+                            {
+                              report.wind_level
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.water_condition && (
+                        <div className="infoCard">
+                          🌊{" "}
+                          <strong>
+                            {
+                              report.water_condition
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.crowd_level && (
+                        <div className="infoCard">
+                          👥{" "}
+                          <strong>
+                            {
+                              report.crowd_level
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.parking_status && (
+                        <div className="infoCard">
+                          🚗{" "}
+                          <strong>
+                            {
+                              report.parking_status
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.toilets_open && (
+                        <div className="infoCard">
+                          🚻{" "}
+                          <strong>
+                            {
+                              report.toilets_open
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.gastronomy_open && (
+                        <div className="infoCard">
+                          🍔{" "}
+                          <strong>
+                            {
+                              report.gastronomy_open
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.algae_status && (
+                        <div className="infoCard">
+                          🦠{" "}
+                          <strong>
+                            {
+                              report.algae_status
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.rain_status && (
+                        <div className="infoCard">
+                          🌧️{" "}
+                          <strong>
+                            {
+                              report.rain_status
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.entrance_status && (
+                        <div className="infoCard">
+                          🚶{" "}
+                          <strong>
+                            {
+                              report.entrance_status
+                            }
+                          </strong>
+                        </div>
+                      )}
+
+                      {report.swimming_ban !==
+                        null && (
+                        <div className="infoCard">
+                          ⛔ Zakaz kąpieli:{" "}
+                          <strong>
+                            {report.swimming_ban
+                              ? "Tak"
+                              : "Nie"}
+                          </strong>
+                        </div>
+                      )}
+                    </div>
+
+                    {report.note && (
+                      <div
+                        style={{
+                          marginTop: "18px",
+                          padding: "16px",
+                          borderRadius:
+                            "14px",
+                          background:
+                            "#f4f7f6",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        💬 {report.note}
+                      </div>
+                    )}
+
+                    {report.live_image_url && (
+                      <img
+                        src={
+                          report.live_image_url
+                        }
+                        alt={`Aktualizacja z miejsca ${place.name}`}
+                        style={{
+                          width: "100%",
+                          maxHeight: "420px",
+                          objectFit: "cover",
+                          borderRadius:
+                            "16px",
+                          marginTop: "18px",
+                        }}
+                      />
+                    )}
+                  </article>
+                )
+              )}
             </div>
           )}
         </section>
       )}
-
-      {visitModalOpen && (
+            {visitModalOpen && (
         <VisitModal
           place={place}
           user={user}
@@ -2510,6 +3128,16 @@ function PlaceDetailsPage({
             await refreshCommunityData();
           }}
         />
+      )}
+
+      {photoCropImageUrl && (
+  <ImageCropModal
+    imageUrl={photoCropImageUrl}
+    allowAspectSelection
+    initialAspectId="landscape"
+    onCancel={handlePhotoCropCancel}
+    onSave={handlePhotoCropSave}
+  />
       )}
     </div>
   );

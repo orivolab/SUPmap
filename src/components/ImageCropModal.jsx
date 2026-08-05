@@ -1,9 +1,34 @@
 import {
   useCallback,
+  useEffect,
+  useMemo,
   useState,
 } from "react";
 
 import Cropper from "react-easy-crop";
+
+const DEFAULT_ASPECT_OPTIONS = [
+  {
+    id: "portrait",
+    label: "Pionowe 4:5",
+    value: 4 / 5,
+  },
+  {
+    id: "landscape",
+    label: "Poziome 4:3",
+    value: 4 / 3,
+  },
+  {
+    id: "square",
+    label: "Kwadrat 1:1",
+    value: 1,
+  },
+  {
+    id: "original",
+    label: "Oryginalne",
+    value: null,
+  },
+];
 
 function createImage(imageUrl) {
   return new Promise(
@@ -30,6 +55,47 @@ function createImage(imageUrl) {
   );
 }
 
+function getRotatedDimensions(
+  width,
+  height,
+  rotation
+) {
+  const radians =
+    (rotation * Math.PI) / 180;
+
+  return {
+    width: Math.abs(
+      Math.cos(radians) * width
+    ) +
+      Math.abs(
+        Math.sin(radians) * height
+      ),
+
+    height: Math.abs(
+      Math.sin(radians) * width
+    ) +
+      Math.abs(
+        Math.cos(radians) * height
+      ),
+  };
+}
+
+async function getOriginalAspect(
+  imageUrl
+) {
+  const image =
+    await createImage(imageUrl);
+
+  if (
+    !image.width ||
+    !image.height
+  ) {
+    return 1;
+  }
+
+  return image.width / image.height;
+}
+
 async function getCroppedImage(
   imageUrl,
   pixelCrop,
@@ -52,34 +118,22 @@ async function getCroppedImage(
     );
   }
 
-  const rotationRadians =
-    (rotation * Math.PI) / 180;
-
-  const rotatedWidth =
-    Math.abs(
-      Math.cos(rotationRadians) *
-        image.width
-    ) +
-    Math.abs(
-      Math.sin(rotationRadians) *
-        image.height
-    );
-
-  const rotatedHeight =
-    Math.abs(
-      Math.sin(rotationRadians) *
-        image.width
-    ) +
-    Math.abs(
-      Math.cos(rotationRadians) *
-        image.height
+  const rotatedDimensions =
+    getRotatedDimensions(
+      image.width,
+      image.height,
+      rotation
     );
 
   canvas.width =
-    Math.round(rotatedWidth);
+    Math.round(
+      rotatedDimensions.width
+    );
 
   canvas.height =
-    Math.round(rotatedHeight);
+    Math.round(
+      rotatedDimensions.height
+    );
 
   context.translate(
     canvas.width / 2,
@@ -87,7 +141,7 @@ async function getCroppedImage(
   );
 
   context.rotate(
-    rotationRadians
+    (rotation * Math.PI) / 180
   );
 
   context.translate(
@@ -116,10 +170,16 @@ async function getCroppedImage(
   }
 
   croppedCanvas.width =
-    pixelCrop.width;
+    Math.max(
+      1,
+      Math.round(pixelCrop.width)
+    );
 
   croppedCanvas.height =
-    pixelCrop.height;
+    Math.max(
+      1,
+      Math.round(pixelCrop.height)
+    );
 
   croppedContext.drawImage(
     canvas,
@@ -129,46 +189,56 @@ async function getCroppedImage(
     pixelCrop.height,
     0,
     0,
-    pixelCrop.width,
-    pixelCrop.height
+    croppedCanvas.width,
+    croppedCanvas.height
   );
 
   return new Promise(
-    (resolve, reject) => {
-      croppedCanvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(
-              new Error(
-                "Nie udało się zapisać zdjęcia."
-              )
-            );
-
-            return;
-          }
-
-          const file = new File(
-            [blob],
-            `cropped-${Date.now()}.jpg`,
-            {
-              type: "image/jpeg",
-            }
+  (resolve, reject) => {
+    croppedCanvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(
+            new Error(
+              "Nie udało się zapisać zdjęcia."
+            )
           );
 
-          resolve(file);
-        },
-        "image/jpeg",
-        0.9
-      );
-    }
-  );
+          return;
+        }
+
+        const file = new File(
+          [blob],
+          `cropped-${Date.now()}.jpg`,
+          {
+            type: "image/jpeg",
+          }
+        );
+
+        resolve(file);
+      },
+      "image/jpeg",
+      0.9
+    );
+  }
+);
 }
 
 function ImageCropModal({
   imageUrl,
   onCancel,
   onSave,
+
   aspect = 16 / 7,
+
+  allowAspectSelection = false,
+
+  aspectOptions =
+    DEFAULT_ASPECT_OPTIONS,
+
+  initialAspectId = null,
+
+  cropShape = "rect",
 }) {
   const [
     crop,
@@ -198,48 +268,181 @@ function ImageCropModal({
     setSaving,
   ] = useState(false);
 
-  const onCropComplete =
-    useCallback(
-      (
-        croppedArea,
-        croppedPixels
-      ) => {
-        setCroppedAreaPixels(
-          croppedPixels
+  const [
+    originalAspect,
+    setOriginalAspect,
+  ] = useState(null);
+
+  const defaultSelectedId =
+    useMemo(() => {
+      if (initialAspectId) {
+        return initialAspectId;
+      }
+
+      const matchingOption =
+        aspectOptions.find(
+          (option) =>
+            option.value === aspect
         );
-      },
-      []
+
+      return (
+        matchingOption?.id ||
+        aspectOptions[0]?.id ||
+        "fixed"
+      );
+    }, [
+      initialAspectId,
+      aspectOptions,
+      aspect,
+    ]);
+
+  const [
+    selectedAspectId,
+    setSelectedAspectId,
+  ] = useState(
+    defaultSelectedId
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadOriginalAspect() {
+      try {
+        const value =
+          await getOriginalAspect(
+            imageUrl
+          );
+
+        if (!cancelled) {
+          setOriginalAspect(value);
+        }
+      } catch (error) {
+        console.error(
+          "Nie udało się odczytać proporcji zdjęcia:",
+          error
+        );
+
+        if (!cancelled) {
+          setOriginalAspect(1);
+        }
+      }
+    }
+
+    loadOriginalAspect();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [imageUrl]);
+
+  const selectedAspect =
+    useMemo(() => {
+      if (!allowAspectSelection) {
+        return aspect;
+      }
+
+      const option =
+        aspectOptions.find(
+          (item) =>
+            item.id ===
+            selectedAspectId
+        );
+
+      if (!option) {
+        return aspect;
+      }
+
+      if (option.value === null) {
+        return (
+          originalAspect ||
+          aspect ||
+          1
+        );
+      }
+
+      return option.value;
+    }, [
+      allowAspectSelection,
+      aspectOptions,
+      selectedAspectId,
+      originalAspect,
+      aspect,
+    ]);
+
+ const onCropComplete = useCallback(
+  (croppedArea, croppedPixels) => {
+    console.log("Crop complete");
+    console.log(croppedPixels);
+
+    setCroppedAreaPixels(croppedPixels);
+  },
+  []
+);
+
+  function handleAspectChange(
+    aspectId
+  ) {
+    setSelectedAspectId(
+      aspectId
     );
 
-  async function handleSave() {
-    if (!croppedAreaPixels) {
-      return;
-    }
+    setCrop({
+      x: 0,
+      y: 0,
+    });
 
-    setSaving(true);
+    setZoom(1);
 
-    try {
-      const croppedFile =
-        await getCroppedImage(
-          imageUrl,
-          croppedAreaPixels,
-          rotation
-        );
-
-      onSave(croppedFile);
-    } catch (error) {
-      console.error(
-        "Błąd kadrowania:",
-        error
-      );
-
-      window.alert(
-        error.message
-      );
-    } finally {
-      setSaving(false);
-    }
+    setCroppedAreaPixels(null);
   }
+
+  async function handleSave() {
+  if (!croppedAreaPixels) {
+    window.alert(
+      "Kadr nie jest jeszcze gotowy. Porusz lekko zdjęciem i spróbuj ponownie."
+    );
+    return;
+  }
+
+  setSaving(true);
+
+  try {
+    const croppedFile = await getCroppedImage(
+      imageUrl,
+      croppedAreaPixels,
+      rotation
+    );
+
+    if (
+      !croppedFile ||
+      croppedFile.size === 0
+    ) {
+      throw new Error(
+        "Wykadrowany plik jest pusty."
+      );
+    }
+
+    await onSave(croppedFile, {
+      aspect: selectedAspect,
+      aspectId: selectedAspectId,
+      rotation,
+    });
+  } catch (error) {
+    console.error(
+      "Błąd zapisywania kadru:",
+      error
+    );
+
+    window.alert(
+      `Nie udało się zapisać kadru: ${
+        error?.message ||
+        "Nieznany błąd"
+      }`
+    );
+  } finally {
+    setSaving(false);
+  }
+}
 
   return (
     <div
@@ -292,10 +495,62 @@ function ImageCropModal({
               color: "#5c6c66",
             }}
           >
-            Przesuń zdjęcie i ustaw
-            odpowiednie przybliżenie.
+            Przesuń zdjęcie, ustaw
+            przybliżenie i wybierz
+            odpowiedni układ.
           </p>
         </div>
+
+        {allowAspectSelection && (
+          <div
+            style={{
+              display: "flex",
+              gap: "8px",
+              flexWrap: "wrap",
+              padding:
+                "0 22px 16px",
+            }}
+          >
+            {aspectOptions.map(
+              (option) => {
+                const active =
+                  selectedAspectId ===
+                  option.id;
+
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() =>
+                      handleAspectChange(
+                        option.id
+                      )
+                    }
+                    style={{
+                      padding:
+                        "9px 13px",
+                      border: active
+                        ? "2px solid #287b63"
+                        : "1px solid #d8e2de",
+                      borderRadius:
+                        "999px",
+                      background: active
+                        ? "#e8f4ef"
+                        : "#ffffff",
+                      color:
+                        "#263630",
+                      fontWeight: 700,
+                      cursor:
+                        "pointer",
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              }
+            )}
+          </div>
+        )}
 
         <div
           style={{
@@ -310,16 +565,29 @@ function ImageCropModal({
             crop={crop}
             zoom={zoom}
             rotation={rotation}
-            aspect={aspect}
-            onCropChange={setCrop}
-            onZoomChange={setZoom}
+            aspect={
+              selectedAspect ||
+              1
+            }
+            cropShape={
+              cropShape
+            }
+            onCropChange={
+              setCrop
+            }
+            onZoomChange={
+              setZoom
+            }
             onRotationChange={
               setRotation
             }
             onCropComplete={
               onCropComplete
             }
-            showGrid
+            showGrid={
+              cropShape !==
+              "round"
+            }
           />
         </div>
 
