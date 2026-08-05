@@ -1393,30 +1393,30 @@ function App() {
   }
 
   async function handleNewPlaceImageChange(
-    event
-  ) {
-    const file =
-      event.target.files?.[0];
-
-    if (!file) {
-      setSelectedImage(null);
-      return;
-    }
-
-    try {
-      const image =
-        await prepareImageFile(file);
-
-      setSelectedImage(image);
-      setFormMessage("");
-    } catch (error) {
-      event.target.value = "";
-      setSelectedImage(null);
-      setFormMessage(
-        error.message
-      );
-    }
+  file
+) {
+  if (!file) {
+    setSelectedImage(null);
+    return;
   }
+
+  try {
+    const image =
+      await prepareImageFile(file);
+
+    image.previewUrl =
+      URL.createObjectURL(image);
+
+    setSelectedImage(image);
+    setFormMessage("");
+  } catch (error) {
+    setSelectedImage(null);
+
+    setFormMessage(
+      error.message
+    );
+  }
+}
 
   async function handleSubmitPlace(
     event

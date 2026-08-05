@@ -12,6 +12,7 @@ import SupScoreCard from "../components/SupScoreCard";
 import PlaceStatistics from "../components/PlaceStatistics";
 import VisitModal from "../components/VisitModal";
 import LiveReportModal from "../components/LiveReportModal";
+import OverviewSidebar from "../components/OverviewSidebar";
 
 import {
   addFavorite,
@@ -969,137 +970,137 @@ function PlaceDetailsPage({
       </button>
 
       <section
-        style={{
-          position: "relative",
-          marginTop: "18px",
-        }}
-      >
-        <img
-          src={
-            place.image_url ||
-            "https://picsum.photos/1200/600"
-          }
-          alt={place.name}
-          className="placeHero"
-          style={{
-            width: "100%",
-            maxHeight: "520px",
-            objectFit: "cover",
-            borderRadius: "24px",
-          }}
-        />
+  style={{
+    position: "relative",
+    width: "min(1180px, 100%)",
+    margin: "18px auto 0",
+  }}
+>
+  <img
+    src={
+      place.image_url ||
+      "https://picsum.photos/1200/600"
+    }
+    alt={place.name}
+    className="placeHero"
+    style={{
+      width: "100%",
+      aspectRatio: "16 / 7",
+      maxHeight: "520px",
+      minHeight: "300px",
+      objectFit: "cover",
+      objectPosition: "center",
+      borderRadius: "24px",
+      display: "block",
+    }}
+  />
 
-        {warnings.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: "18px",
-              left: "18px",
-              maxWidth: "calc(100% - 36px)",
-              padding: "12px 16px",
-              borderRadius: "14px",
-              background:
-                "rgba(168, 45, 37, 0.94)",
-              color: "#ffffff",
-              fontWeight: 800,
-              lineHeight: 1.45,
-            }}
-          >
-            ⚠️ Aktywne ostrzeżenie użytkowników
-          </div>
-        )}
-      </section>
+  {warnings.length > 0 && (
+    <div
+      style={{
+        position: "absolute",
+        top: "18px",
+        left: "18px",
+        maxWidth: "calc(100% - 36px)",
+        padding: "12px 16px",
+        borderRadius: "14px",
+        background:
+          "rgba(168, 45, 37, 0.94)",
+        color: "#ffffff",
+        fontWeight: 800,
+        lineHeight: 1.45,
+      }}
+    >
+      ⚠️ Aktywne ostrzeżenie użytkowników
+    </div>
+  )}
+</section>
 
-      <section
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: "22px",
-          flexWrap: "wrap",
-          marginTop: "26px",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              margin: "0 0 8px",
-              fontSize:
-                "clamp(32px, 5vw, 48px)",
-            }}
-          >
-            {place.name}
-          </h1>
+     <section
+  style={{
+    marginTop: "28px",
+    textAlign: "center",
+  }}
+>
+  <h1
+  style={{
+    width: "min(900px, 100%)",
+    margin: "0 auto",
+    textAlign: "center",
+    fontSize: "clamp(40px, 5vw, 56px)",
+    fontWeight: 800,
+    lineHeight: 1.08,
+  }}
+>
+  {place.name}
+</h1>
 
-          {place.city && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: "18px",
-              }}
-            >
-              📍 {place.city}
-            </p>
-          )}
+  {place.city && (
+    <p
+      style={{
+        marginTop: "10px",
+        fontSize: "20px",
+        color: "#5c6c66",
+      }}
+    >
+      📍 {place.city}
+    </p>
+  )}
 
-          <p
-            style={{
-              margin: "10px 0 0",
-              color: "#5c6c66",
-              lineHeight: 1.5,
-            }}
-          >
-            Ostatnia aktualizacja danych
-            stałych:{" "}
-            <strong>
-              {formatStaticUpdateDate(
-                place.static_data_updated_at
-              )}
-            </strong>
-          </p>
-        </div>
+  <p
+    style={{
+      marginTop: "10px",
+      color: "#6b746f",
+    }}
+  >
+    Ostatnia aktualizacja danych stałych:
+    <strong>
+      {" "}
+      {formatStaticUpdateDate(
+        place.static_data_updated_at
+      )}
+    </strong>
+  </p>
 
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            flexWrap: "wrap",
-          }}
-        >
-          <button
-            type="button"
-            className="addPhotoButton"
-            onClick={handleToggleFavorite}
-          >
-            {favorite
-              ? "❤️ Usuń z ulubionych"
-              : "🤍 Zapisz miejsce"}
-          </button>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      gap: "14px",
+      flexWrap: "wrap",
+      marginTop: "22px",
+    }}
+  >
+    <button
+      type="button"
+      className="addPhotoButton"
+      onClick={handleToggleFavorite}
+    >
+      {favorite
+        ? "❤️ Usuń z ulubionych"
+        : "🤍 Zapisz miejsce"}
+    </button>
 
-          <button
-            type="button"
-            className="approveButton"
-            onClick={() =>
-              setVisitModalOpen(true)
-            }
-          >
-            ✅ Byłam tutaj
-          </button>
+    <button
+      type="button"
+      className="approveButton"
+      onClick={() => setVisitModalOpen(true)}
+    >
+      ✅ Byłam tutaj
+    </button>
 
-          <button
-            type="button"
-            className="addPlaceButton"
-            style={{
-              width: "auto",
-            }}
-            onClick={() =>
-              setLiveReportModalOpen(true)
-            }
-          >
-            🔴 Dodaj aktualizację
-          </button>
-        </div>
-      </section>
+    <button
+      type="button"
+      className="addPlaceButton"
+      style={{ width: "auto" }}
+      onClick={() =>
+        setLiveReportModalOpen(true)
+      }
+    >
+      🔴 Dodaj aktualizację
+    </button>
+  </div>
+</section>
 
       {favoriteMessage && (
         <p className="formMessage">
@@ -1113,9 +1114,11 @@ function PlaceDetailsPage({
         </p>
       )}
 
-      {place.important_info && (
-        <section
-          style={{
+     {place.important_info && (
+  <section
+    id="overview-important"
+    className="overviewScrollSection"
+    style={{
             marginTop: "26px",
             padding: "20px",
             borderRadius: "18px",
@@ -1257,142 +1260,167 @@ function PlaceDetailsPage({
         reportsCount={allReports.length}
       />
 
-      {activeTab === "overview" && (
-        <>
-          {loadingStatistics ? (
+            {activeTab === "overview" && (
+        <div className="overviewLayout">
+          <OverviewSidebar />
+
+          <div className="overviewContent">
             <section
-              className="adminCard"
-              style={{
-                padding: "26px",
-              }}
+              id="overview-score"
+              className="overviewScrollSection"
             >
-              <p>
-                Ładowanie SUP Score i
-                statystyk...
-              </p>
-            </section>
-          ) : (
-            <>
-              <SupScoreCard
-                result={supScore}
-              />
-
-              <PlaceStatistics
-                statistics={statistics}
-              />
-            </>
-          )}
-
-          <PlaceLiveStatus
-            reports={activeReports}
-            loading={loadingReports}
-            onOpenPublicProfile={
-              onOpenPublicProfile
-            }
-          />
-
-          <WeatherCard
-            latitude={place.lat}
-            longitude={place.lng}
-          />
-
-          <section
-            className="adminCard"
-            style={{
-              padding: "26px",
-              marginTop: "32px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent:
-                  "space-between",
-                alignItems: "flex-start",
-                gap: "20px",
-                flexWrap: "wrap",
-              }}
-            >
-              <div>
-                <h2
+              {loadingStatistics ? (
+                <section
+                  className="adminCard"
                   style={{
-                    margin: "0 0 8px",
-                    fontSize: "26px",
+                    padding: "26px",
                   }}
                 >
-                  ✅ Aktualność informacji
-                </h2>
-
-                {loadingVerification ? (
                   <p>
-                    Ładowanie potwierdzeń...
+                    Ładowanie SUP Score i
+                    statystyk...
                   </p>
-                ) : verificationInfo.verified ? (
-                  <p
-                    style={{
-                      margin: 0,
-                      lineHeight: 1.6,
-                    }}
+                </section>
+              ) : (
+                <>
+                  <SupScoreCard
+                    result={supScore}
+                  />
+
+                  <PlaceStatistics
+                    statistics={statistics}
+                  />
+                </>
+              )}
+            </section>
+
+            <section
+              id="overview-live"
+              className="overviewScrollSection"
+            >
+              <PlaceLiveStatus
+                reports={activeReports}
+                loading={loadingReports}
+                onOpenPublicProfile={
+                  onOpenPublicProfile
+                }
+              />
+            </section>
+
+            <section
+              id="overview-weather"
+              className="overviewScrollSection"
+            >
+              <WeatherCard
+                latitude={place.lat}
+                longitude={place.lng}
+              />
+            </section>
+
+            <section
+              id="overview-verification"
+              className="overviewScrollSection"
+            >
+              <section
+                className="adminCard"
+                style={{
+                  padding: "26px",
+                  marginTop: "32px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems:
+                      "flex-start",
+                    gap: "20px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div>
+                    <h2
+                      style={{
+                        margin: "0 0 8px",
+                        fontSize: "26px",
+                      }}
+                    >
+                      ✅ Aktualność informacji
+                    </h2>
+
+                    {loadingVerification ? (
+                      <p>
+                        Ładowanie potwierdzeń...
+                      </p>
+                    ) : verificationInfo.verified ? (
+                      <p
+                        style={{
+                          margin: 0,
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        <strong>
+                          Zweryfikowane przez
+                          społeczność
+                        </strong>
+                        {" · "}
+                        {
+                          verificationInfo.uniqueRecentCount
+                        }{" "}
+                        unikalnych osób potwierdziło
+                        dane w ciągu ostatnich 30 dni.
+                      </p>
+                    ) : (
+                      <p
+                        style={{
+                          margin: 0,
+                          lineHeight: 1.6,
+                          color: "#5c6c66",
+                        }}
+                      >
+                        Aktualność potwierdziło{" "}
+                        <strong>
+                          {
+                            verificationInfo.uniqueRecentCount
+                          }
+                        </strong>{" "}
+                        unikalnych użytkowników w
+                        ciągu ostatnich 30 dni.
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="approveButton"
+                    disabled={
+                      submittingVerification ||
+                      !verificationInfo.canCurrentUserVerify
+                    }
+                    onClick={handleVerifyPlace}
                   >
-                    <strong>
-                      Zweryfikowane przez
-                      społeczność
-                    </strong>
-                    {" · "}
-                    {
-                      verificationInfo.uniqueRecentCount
-                    }{" "}
-                    unikalnych osób potwierdziło
-                    dane w ciągu ostatnich 30 dni.
-                  </p>
-                ) : (
-                  <p
-                    style={{
-                      margin: 0,
-                      lineHeight: 1.6,
-                      color: "#5c6c66",
-                    }}
-                  >
-                    Aktualność potwierdziło{" "}
-                    <strong>
-                      {
-                        verificationInfo.uniqueRecentCount
-                      }
-                    </strong>{" "}
-                    unikalnych użytkowników w
-                    ciągu ostatnich 30 dni.
+                    {submittingVerification
+                      ? "Zapisywanie..."
+                      : verificationInfo.canCurrentUserVerify
+                        ? "Potwierdzam aktualność"
+                        : user
+                          ? "Ponownie za 3 godziny"
+                          : "Zaloguj się"}
+                  </button>
+                </div>
+
+                {verificationMessage && (
+                  <p className="formMessage">
+                    {verificationMessage}
                   </p>
                 )}
-              </div>
+              </section>
+            </section>
 
-              <button
-                type="button"
-                className="approveButton"
-                disabled={
-                  submittingVerification ||
-                  !verificationInfo.canCurrentUserVerify
-                }
-                onClick={handleVerifyPlace}
-              >
-                {submittingVerification
-                  ? "Zapisywanie..."
-                  : verificationInfo.canCurrentUserVerify
-                    ? "Potwierdzam aktualność"
-                    : user
-                      ? "Ponownie za 3 godziny"
-                      : "Zaloguj się"}
-              </button>
-            </div>
-
-            {verificationMessage && (
-              <p className="formMessage">
-                {verificationMessage}
-              </p>
-            )}
-          </section>
-
-          <PlaceAmenities place={place} />
-        </>
+            <PlaceAmenities place={place} />
+          </div>
+        </div>
       )}
 
       {activeTab === "reviews" && (

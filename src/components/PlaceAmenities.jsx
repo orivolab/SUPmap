@@ -143,13 +143,57 @@ function ListValue({
 
   return <>{safeValues.join(", ")}</>;
 }
+function getDetailBlockId(title) {
+  const sectionIds = {
+    "🚗 Parking": "overview-parking",
+
+    "🐶 Psy": "overview-dogs",
+
+    "🚻 Toalety, prysznice i przebieralnie":
+      "overview-amenities",
+
+    "🍔 Gastronomia i wypożyczalnia":
+      "overview-gastronomy",
+
+    "🛟 Ratownik, grill i ognisko":
+      "overview-safety",
+
+    "🌳 Cień i odpoczynek":
+      "overview-rest",
+
+    "⛺ Nocleg i dłuższy pobyt":
+      "overview-stay",
+
+    "🛣️ Dojazd i dostępność":
+      "overview-access",
+
+    "🌊 Charakter wody i brzegu":
+      "overview-water",
+
+    "👶 Dzieci i początkujący":
+      "overview-children",
+
+    "🚤 Ruch wodny i przeszkody":
+      "overview-water-traffic",
+
+    "📌 Ważne informacje":
+      "overview-important-details",
+  };
+
+  return sectionIds[title] || undefined;
+}
 
 function DetailBlock({
   title,
   children,
 }) {
+  const sectionId =
+    getDetailBlockId(title);
+
   return (
     <section
+      id={sectionId}
+      className="overviewScrollSection"
       style={{
         marginTop: "30px",
       }}
