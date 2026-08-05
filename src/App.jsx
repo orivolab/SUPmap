@@ -499,16 +499,6 @@ function buildPlacePayload({
       "rental_prices"
     ),
 
-    rental_deposit: getText(
-      formData,
-      "rental_deposit"
-    ),
-
-    rental_document_required:
-      getText(
-        formData,
-        "rental_document_required"
-      ),
 
     rental_opening_hours: getText(
       formData,
@@ -592,67 +582,46 @@ function buildPlacePayload({
       "sports_field"
     ),
 
-    // Pole namiotowe
-    campsite_status: getText(
-      formData,
-      "campsite_status"
-    ),
+    // Camping
+campsite_status: getText(
+  formData,
+  "campsite_status"
+),
 
-    campsite_price: getText(
-      formData,
-      "campsite_price"
-    ),
+campsite_price: getText(
+  formData,
+  "campsite_price"
+),
 
-    campsite_distance: getText(
-      formData,
-      "campsite_distance"
-    ),
+campsite_distance: getText(
+  formData,
+  "campsite_distance"
+),
 
-    campsite_description: getText(
-      formData,
-      "campsite_description"
-    ),
+campsite_contact: getText(
+  formData,
+  "campsite_contact"
+),
 
-    campsite_electricity: getBoolean(
-      formData,
-      "campsite_electricity"
-    ),
+campsite_description: getText(
+  formData,
+  "campsite_description"
+),
 
-    campsite_water: getBoolean(
-      formData,
-      "campsite_water"
-    ),
+campsite_electricity: getBoolean(
+  formData,
+  "campsite_electricity"
+),
 
-    campsite_dogs: getBoolean(
-      formData,
-      "campsite_dogs"
-    ),
+campsite_water: getBoolean(
+  formData,
+  "campsite_water"
+),
 
-    // Kampery
-    camper_status: getText(
-      formData,
-      "camper_status"
-    ),
-
-    camper_electricity: getBoolean(
-      formData,
-      "camper_electricity"
-    ),
-
-    camper_water: getBoolean(
-      formData,
-      "camper_water"
-    ),
-
-    camper_dogs: getBoolean(
-      formData,
-      "camper_dogs"
-    ),
-
-    camper_description: getText(
-      formData,
-      "camper_description"
-    ),
+campsite_dogs: getBoolean(
+  formData,
+  "campsite_dogs"
+),
 
     // Noclegi
     accommodation_status: getText(

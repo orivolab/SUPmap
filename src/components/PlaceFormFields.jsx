@@ -1022,133 +1022,111 @@ function PlaceFormFields({
       </FieldSection>
 
       <FieldSection
-        title="🏄 Wypożyczalnia"
-        description="Sprzęt, ceny, kaucja, rezerwacja i dane kontaktowe."
-      >
-        <Grid>
-          <SelectField
-            label="Czy wypożyczalnia jest dostępna?"
-            name="rental_available"
-            defaultValue={
-              place.rental_available
-            }
-            options={[
-              {
-                value: "",
-                label: "Brak informacji",
-              },
-              {
-                value: "Tak",
-                label: "Tak",
-              },
-              {
-                value: "Nie",
-                label: "Nie",
-              },
-              {
-                value: "Sezonowo",
-                label: "Sezonowo",
-              },
-            ]}
-          />
+  title="🏄 Wypożyczalnia"
+  description="Dostępność sprzętu, cennik, godziny, możliwość rezerwacji i kontakt."
+>
+  <Grid>
+    <SelectField
+      label="Czy wypożyczalnia jest dostępna?"
+      name="rental_available"
+      defaultValue={
+        place.rental_available
+      }
+      options={[
+        {
+          value: "",
+          label: "Brak informacji",
+        },
+        {
+          value: "Tak",
+          label: "Tak",
+        },
+        {
+          value: "Nie",
+          label: "Nie",
+        },
+        {
+          value: "Sezonowo",
+          label: "Sezonowo",
+        },
+      ]}
+    />
 
-          <TextField
-            label="Godziny działania"
-            name="rental_opening_hours"
-            defaultValue={
-              place.rental_opening_hours
-            }
-            placeholder="Np. 10:00–19:00"
-            maxLength={300}
-          />
+    <TextField
+      label="Godziny działania"
+      name="rental_opening_hours"
+      defaultValue={
+        place.rental_opening_hours
+      }
+      placeholder="Np. 10:00–19:00"
+      maxLength={300}
+    />
 
-          <TextField
-            label="Kontakt lub strona"
-            name="rental_contact"
-            defaultValue={
-              place.rental_contact
-            }
-            placeholder="Telefon, strona internetowa lub profil społecznościowy"
-            maxLength={500}
-          />
-        </Grid>
+    <TextField
+      label="Kontakt lub strona"
+      name="rental_contact"
+      defaultValue={
+        place.rental_contact
+      }
+      placeholder="Telefon, strona internetowa lub profil społecznościowy"
+      maxLength={500}
+    />
+  </Grid>
 
-        <CheckboxGroup
-          label="Co można wypożyczyć?"
-          name="rental_equipment"
-          defaultValues={
-            place.rental_equipment
-          }
-          options={[
-            "SUP",
-            "Kajak",
-            "Rower wodny",
-            "Łódka",
-            "Inne",
-          ]}
-        />
+  <CheckboxGroup
+    label="Co można wypożyczyć?"
+    name="rental_equipment"
+    defaultValues={
+      place.rental_equipment
+    }
+    options={[
+      "SUP",
+      "Kajak",
+      "Rower wodny",
+      "Łódka",
+      "Inne",
+    ]}
+  />
 
-        <TextField
-          label="Inny dostępny sprzęt"
-          name="rental_other"
-          defaultValue={
-            place.rental_other
-          }
-          placeholder="Np. kapoki, deski windsurfingowe"
-          maxLength={500}
-        />
+  <TextField
+    label="Inny dostępny sprzęt"
+    name="rental_other"
+    defaultValue={
+      place.rental_other
+    }
+    placeholder="Np. kapoki, deski windsurfingowe"
+    maxLength={500}
+  />
 
-        <TextareaField
-          label="Cennik"
-          name="rental_prices"
-          defaultValue={
-            place.rental_prices
-          }
-          placeholder="Np. SUP 40 zł/h, kajak 50 zł/h"
-          maxLength={1500}
-        />
+  <TextareaField
+    label="Cennik"
+    name="rental_prices"
+    defaultValue={
+      place.rental_prices
+    }
+    placeholder="Np. SUP 40 zł/h, kajak 50 zł/h"
+    maxLength={1500}
+  />
 
-        <Grid>
-          <TextField
-            label="Kaucja"
-            name="rental_deposit"
-            defaultValue={
-              place.rental_deposit
-            }
-            placeholder="Np. 100 zł"
-            maxLength={300}
-          />
+  <CheckboxField
+    label="Możliwość wcześniejszej rezerwacji"
+    name="rental_reservation"
+    icon="📅"
+    defaultChecked={
+      place.rental_reservation
+    }
+  />
 
-          <TextField
-            label="Wymagany dokument"
-            name="rental_document_required"
-            defaultValue={
-              place.rental_document_required
-            }
-            placeholder="Np. dowód osobisty"
-            maxLength={300}
-          />
-        </Grid>
-
-        <CheckboxField
-          label="Możliwość wcześniejszej rezerwacji"
-          name="rental_reservation"
-          icon="📅"
-          defaultChecked={
-            place.rental_reservation
-          }
-        />
-
-        <TextareaField
-          label="Dodatkowy opis wypożyczalni"
-          name="rental_description"
-          defaultValue={
-            place.rental_description
-          }
-          placeholder="Np. w weekendy warto rezerwować sprzęt wcześniej."
-          maxLength={1200}
-        />
-      </FieldSection>
+  <TextareaField
+    label="Dodatkowy opis wypożyczalni"
+    name="rental_description"
+    defaultValue={
+      place.rental_description
+    }
+    placeholder="Np. w weekendy warto rezerwować sprzęt wcześniej."
+    maxLength={1200}
+  />
+</FieldSection>
 
       <FieldSection
         title="🔥 Grill i ognisko"
@@ -1330,176 +1308,112 @@ function PlaceFormFields({
         />
       </FieldSection>
 
-      {/* KONIEC CZĘŚCI 2 */}
-            <FieldSection
-        title="⛺ Pole namiotowe"
-        description="Informacje o polu namiotowym na miejscu lub w pobliżu."
-      >
-        <Grid>
-          <SelectField
-            label="Dostępność pola namiotowego"
-            name="campsite_status"
-            defaultValue={
-              place.campsite_status
-            }
-            options={[
-              {
-                value: "",
-                label: "Brak informacji",
-              },
-              {
-                value: "Tak",
-                label: "Tak, na miejscu",
-              },
-              {
-                value: "Nie",
-                label: "Nie",
-              },
-              {
-                value: "W pobliżu",
-                label: "W pobliżu",
-              },
-            ]}
-          />
-
-          <TextField
-            label="Cena"
-            name="campsite_price"
-            defaultValue={
-              place.campsite_price
-            }
-            placeholder="Np. 40 zł za osobę i namiot"
-            maxLength={300}
-          />
-
-          <TextField
-            label="Odległość"
-            name="campsite_distance"
-            defaultValue={
-              place.campsite_distance
-            }
-            placeholder="Np. 500 m od plaży"
-            maxLength={300}
-          />
-        </Grid>
-
-        <Grid minimumWidth={210}>
-          <CheckboxField
-            label="Dostęp do prądu"
-            name="campsite_electricity"
-            icon="⚡"
-            defaultChecked={
-              place.campsite_electricity
-            }
-          />
-
-          <CheckboxField
-            label="Dostęp do wody"
-            name="campsite_water"
-            icon="🚰"
-            defaultChecked={
-              place.campsite_water
-            }
-          />
-
-          <CheckboxField
-            label="Możliwość nocowania z psem"
-            name="campsite_dogs"
-            icon="🐶"
-            defaultChecked={
-              place.campsite_dogs
-            }
-          />
-        </Grid>
-
-        <TextareaField
-          label="Dodatkowy opis pola namiotowego"
-          name="campsite_description"
-          defaultValue={
-            place.campsite_description
-          }
-          placeholder="Np. rezerwacja telefoniczna, sanitariaty przy recepcji, cisza nocna od 22:00."
-          maxLength={1200}
-        />
-      </FieldSection>
-
       <FieldSection
-        title="🚐 Kampery"
-        description="Zasady postoju i nocowania kamperem."
-      >
-        <SelectField
-          label="Kampery"
-          name="camper_status"
-          defaultValue={
-            place.camper_status
-          }
-          options={[
-            {
-              value: "",
-              label: "Brak informacji",
-            },
-            {
-              value: "Dozwolone",
-              label: "Dozwolone",
-            },
-            {
-              value: "Zakaz",
-              label: "Zakaz",
-            },
-            {
-              value:
-                "Tylko parking dzienny",
-              label:
-                "Tylko parking dzienny",
-            },
-            {
-              value:
-                "Specjalne stanowiska",
-              label:
-                "Specjalne stanowiska",
-            },
-          ]}
-        />
+  title="⛺ Camping"
+  description="Informacje o campingu dla namiotów i kamperów, na miejscu lub w pobliżu."
+>
+  <Grid>
+    <SelectField
+      label="Dostępność campingu"
+      name="campsite_status"
+      defaultValue={
+        place.campsite_status ||
+        place.camper_status
+      }
+      options={[
+        {
+          value: "",
+          label: "Brak informacji",
+        },
+        {
+          value: "Na miejscu",
+          label: "Na miejscu",
+        },
+        {
+          value: "W pobliżu",
+          label: "W pobliżu",
+        },
+        {
+          value: "Brak",
+          label: "Brak",
+        },
+      ]}
+    />
 
-        <Grid minimumWidth={210}>
-          <CheckboxField
-            label="Dostęp do prądu"
-            name="camper_electricity"
-            icon="⚡"
-            defaultChecked={
-              place.camper_electricity
-            }
-          />
+    <TextField
+      label="Cena"
+      name="campsite_price"
+      defaultValue={
+        place.campsite_price
+      }
+      placeholder="Np. 40 zł za osobę, 80 zł za kampera"
+      maxLength={500}
+    />
 
-          <CheckboxField
-            label="Dostęp do wody"
-            name="camper_water"
-            icon="🚰"
-            defaultChecked={
-              place.camper_water
-            }
-          />
+    <TextField
+      label="Odległość"
+      name="campsite_distance"
+      defaultValue={
+        place.campsite_distance
+      }
+      placeholder="Np. na miejscu, 500 m od plaży"
+      maxLength={300}
+    />
 
-          <CheckboxField
-            label="Możliwość pobytu z psem"
-            name="camper_dogs"
-            icon="🐶"
-            defaultChecked={
-              place.camper_dogs
-            }
-          />
-        </Grid>
+    <TextField
+      label="Kontakt do campingu"
+      name="campsite_contact"
+      defaultValue={
+        place.campsite_contact
+      }
+      placeholder="Telefon, strona internetowa lub profil społecznościowy"
+      maxLength={700}
+    />
+  </Grid>
 
-        <TextareaField
-          label="Dodatkowy opis dla kamperów"
-          name="camper_description"
-          defaultValue={
-            place.camper_description
-          }
-          placeholder="Np. nocowanie tylko na specjalnych stanowiskach, opłata pobierana przy wjeździe."
-          maxLength={1200}
-        />
-      </FieldSection>
+  <Grid minimumWidth={210}>
+    <CheckboxField
+      label="Dostęp do prądu"
+      name="campsite_electricity"
+      icon="⚡"
+      defaultChecked={
+        place.campsite_electricity ??
+        place.camper_electricity
+      }
+    />
+
+    <CheckboxField
+      label="Dostęp do wody"
+      name="campsite_water"
+      icon="🚰"
+      defaultChecked={
+        place.campsite_water ??
+        place.camper_water
+      }
+    />
+
+    <CheckboxField
+      label="Możliwość pobytu z psem"
+      name="campsite_dogs"
+      icon="🐶"
+      defaultChecked={
+        place.campsite_dogs ??
+        place.camper_dogs
+      }
+    />
+  </Grid>
+
+  <TextareaField
+    label="Dodatkowy opis campingu"
+    name="campsite_description"
+    defaultValue={
+      place.campsite_description ||
+      place.camper_description
+    }
+    placeholder="Np. stanowiska dla kamperów, miejsce na namioty, sanitariaty, cisza nocna i zasady rezerwacji."
+    maxLength={1500}
+  />
+</FieldSection>
 
       <FieldSection
         title="🏠 Noclegi"
@@ -2023,70 +1937,6 @@ function PlaceFormFields({
         />
       </FieldSection>
 
-      <FieldSection
-        title="⭐ Informacje wykorzystywane do SUP Score"
-        description="Te dane pomagają automatycznie wyliczyć ocenę miejsca."
-      >
-        <Grid minimumWidth={220}>
-          <CheckboxField
-            label="Dobre dla początkujących"
-            name="score_beginner"
-            icon="🏄"
-            defaultChecked={place.score_beginner}
-          />
-
-          <CheckboxField
-            label="Łagodne wejście do wody"
-            name="score_easy_entry"
-            icon="🚶"
-            defaultChecked={place.score_easy_entry}
-          />
-
-          <CheckboxField
-            label="Bezpieczne miejsce"
-            name="score_safe"
-            icon="🛟"
-            defaultChecked={place.score_safe}
-          />
-
-          <CheckboxField
-            label="Dobra infrastruktura"
-            name="score_infrastructure"
-            icon="🏖️"
-            defaultChecked={
-              place.score_infrastructure
-            }
-          />
-
-          <CheckboxField
-            label="Czysta woda"
-            name="score_clean"
-            icon="💧"
-            defaultChecked={place.score_clean}
-          />
-
-          <CheckboxField
-            label="Spokojna woda"
-            name="score_calm"
-            icon="🌊"
-            defaultChecked={place.score_calm}
-          />
-
-          <CheckboxField
-            label="Przyjazne psom"
-            name="score_dogs"
-            icon="🐶"
-            defaultChecked={place.score_dogs}
-          />
-
-          <CheckboxField
-            label="Dobre dla rodzin"
-            name="score_family"
-            icon="👨‍👩‍👧"
-            defaultChecked={place.score_family}
-          />
-        </Grid>
-      </FieldSection>
     </>
   );
 }

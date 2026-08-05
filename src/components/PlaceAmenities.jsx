@@ -264,6 +264,174 @@ function TextPanel({
     </article>
   );
 }
+function StackedInfoRow({
+  icon,
+  label,
+  value,
+  description,
+  isBoolean = false,
+}) {
+  let displayedValue = value;
+
+  if (isBoolean) {
+    const known =
+      value === true ||
+      value === false;
+
+    displayedValue = !known
+      ? "Brak informacji"
+      : value
+        ? "Tak"
+        : "Nie";
+  }
+
+  const hasValue =
+    displayedValue !== null &&
+    displayedValue !== undefined &&
+    displayedValue !== "" &&
+    displayedValue !==
+      "Brak informacji";
+
+  return (
+    <article
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "42px minmax(0, 1fr)",
+        gap: "14px",
+        alignItems: "center",
+        padding: "16px 18px",
+        borderBottom:
+          "1px solid #dce7e2",
+        opacity: hasValue ? 1 : 0.65,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          display: "grid",
+          placeItems: "center",
+          fontSize: "25px",
+        }}
+      >
+        {icon}
+      </span>
+
+      <div
+        style={{
+          minWidth: 0,
+        }}
+      >
+        <h4
+          style={{
+            margin: "0 0 4px",
+            fontSize: "16px",
+          }}
+        >
+          {label}
+        </h4>
+
+        <strong
+          style={{
+            display: "block",
+            fontSize: "16px",
+            lineHeight: 1.5,
+            overflowWrap: "anywhere",
+          }}
+        >
+          {hasValue
+            ? displayedValue
+            : "Brak informacji"}
+        </strong>
+
+        {description && (
+          <p
+            style={{
+              margin: "5px 0 0",
+              color: "#5c6c66",
+              fontSize: "14px",
+              lineHeight: 1.5,
+            }}
+          >
+            {description}
+          </p>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function StackedInfoGroup({
+  icon,
+  title,
+  description,
+  children,
+}) {
+  return (
+    <section
+      style={{
+        overflow: "hidden",
+        border:
+          "1px solid #dce7e2",
+        borderRadius: "18px",
+        background: "#ffffff",
+      }}
+    >
+      <header
+        style={{
+          display: "flex",
+          gap: "12px",
+          alignItems: "center",
+          padding: "18px",
+          background: "#f4f7f6",
+          borderBottom:
+            "1px solid #dce7e2",
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            fontSize: "27px",
+          }}
+        >
+          {icon}
+        </span>
+
+        <div>
+          <h4
+            style={{
+              margin: 0,
+              fontSize: "19px",
+            }}
+          >
+            {title}
+          </h4>
+
+          {description && (
+            <p
+              style={{
+                margin: "4px 0 0",
+                color: "#5c6c66",
+                fontSize: "14px",
+                lineHeight: 1.45,
+              }}
+            >
+              {description}
+            </p>
+          )}
+        </div>
+      </header>
+
+      <div
+        style={{
+          display: "grid",
+        }}
+      >
+        {children}
+      </div>
+    </section>
+  );
+}
 
 function PlaceAmenities({ place }) {
   if (!place) {
@@ -596,88 +764,63 @@ function PlaceAmenities({ place }) {
       </DetailBlock>
 
       <DetailBlock title="🏄 Wypożyczalnia">
-        <div
-          className="infoGrid"
-          style={{
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(180px, 1fr))",
-          }}
-        >
-          <ValueCard
-            icon="🏄"
-            label="Wypożyczalnia"
-            value={
-              place.rental_available
-            }
-            description={
-              place.rental_description
-            }
-          />
+  <StackedInfoGroup
+    icon="🏄"
+    title="Wypożyczalnia"
+    description={
+      place.rental_description
+    }
+  >
 
-          <ValueCard
-            icon="🛶"
-            label="Sprzęt"
-            value={
-              <ListValue
-                values={
-                  place.rental_equipment
-                }
-              />
-            }
-            description={
-              place.rental_other
-            }
-          />
+    <StackedInfoRow
+      icon="🛶"
+      label="Sprzęt"
+      value={
+        <ListValue
+          values={
+            place.rental_equipment
+          }
+        />
+      }
+      description={
+        place.rental_other
+      }
+    />
 
-          <ValueCard
-            icon="💰"
-            label="Cennik"
-            value={
-              place.rental_prices
-            }
-          />
+    <StackedInfoRow
+      icon="💰"
+      label="Cennik"
+      value={
+        place.rental_prices
+      }
+    />
 
-          <ValueCard
-            icon="🔐"
-            label="Kaucja"
-            value={
-              place.rental_deposit
-            }
-          />
+    <StackedInfoRow
+      icon="🕒"
+      label="Godziny"
+      value={
+        place.rental_opening_hours
+      }
+    />
 
-          <ValueCard
-            icon="🪪"
-            label="Wymagany dokument"
-            value={
-              place.rental_document_required
-            }
-          />
+    <StackedInfoRow
+      icon="📅"
+      label="Rezerwacja"
+      value={
+        place.rental_reservation
+      }
+      isBoolean
+    />
 
-          <ValueCard
-            icon="🕒"
-            label="Godziny wypożyczalni"
-            value={
-              place.rental_opening_hours
-            }
-          />
-
-          <BooleanCard
-            icon="📅"
-            label="Rezerwacja"
-            value={
-              place.rental_reservation
-            }
-          />
-
-          <ValueCard
-            icon="☎️"
-            label="Kontakt"
-            value={
-              place.rental_contact
-            }
-          />
-        </div>
-      </DetailBlock>
+    <StackedInfoRow
+      icon="☎️"
+      label="Kontakt"
+      value={
+        place.rental_contact
+      }
+    />
+  </StackedInfoGroup>
+</DetailBlock>
 
       <DetailBlock title="🛟 Ratownik">
         <div
@@ -815,112 +958,102 @@ function PlaceAmenities({ place }) {
           />
         </div>
       </DetailBlock>
+      
             <DetailBlock title="⛺ Nocleg i dłuższy pobyt">
-        <div
-          className="infoGrid"
-          style={{
-            gridTemplateColumns:
-              "repeat(auto-fit, minmax(180px, 1fr))",
-          }}
-        >
-          <ValueCard
-            icon="⛺"
-            label="Pole namiotowe"
-            value={place.campsite_status}
-            description={
-              place.campsite_description
-            }
-          />
+  <div
+    style={{
+      display: "grid",
+      gap: "22px",
+    }}
+  >
+    <StackedInfoGroup
+      icon="⛺"
+      title="Camping"
+      description={
+        place.campsite_description ||
+        place.camper_description
+      }
+    >
+      <StackedInfoRow
+        icon="💰"
+        label="Cena"
+        value={
+          place.campsite_price
+        }
+      />
 
-          <ValueCard
-            icon="💰"
-            label="Cena pola"
-            value={place.campsite_price}
-          />
+      <StackedInfoRow
+        icon="⚡"
+        label="Prąd"
+        value={
+          place.campsite_electricity ??
+          place.camper_electricity
+        }
+        isBoolean
+      />
+      <StackedInfoRow
+        icon="🚰"
+        label="Woda"
+        value={
+          place.campsite_water ??
+          place.camper_water
+        }
+        isBoolean
+      />
 
-          <ValueCard
-            icon="📏"
-            label="Odległość pola"
-            value={place.campsite_distance}
-          />
+      <StackedInfoRow
+        icon="🐶"
+        label="Psy"
+        value={
+          place.campsite_dogs ??
+          place.camper_dogs
+        }
+        isBoolean
+      />
 
-          <BooleanCard
-            icon="⚡"
-            label="Prąd na polu"
-            value={
-              place.campsite_electricity
-            }
-          />
+      <StackedInfoRow
+        icon="☎️"
+        label="Kontakt"
+        value={
+          place.campsite_contact ||
+          place.camper_contact ||
+          place.accommodation_link
+        }
+      />
+    </StackedInfoGroup>
 
-          <BooleanCard
-            icon="🚰"
-            label="Woda na polu"
-            value={place.campsite_water}
-          />
-
-          <BooleanCard
-            icon="🐶"
-            label="Psy na polu"
-            value={place.campsite_dogs}
-          />
-
-          <ValueCard
-            icon="🚐"
-            label="Kampery"
-            value={place.camper_status}
-            description={
-              place.camper_description
-            }
-          />
-
-          <BooleanCard
-            icon="⚡"
-            label="Prąd dla kamperów"
-            value={
-              place.camper_electricity
-            }
-          />
-
-          <BooleanCard
-            icon="🚰"
-            label="Woda dla kamperów"
-            value={place.camper_water}
-          />
-
-          <BooleanCard
-            icon="🐶"
-            label="Psy w kamperach"
-            value={place.camper_dogs}
-          />
-
-          <ValueCard
-            icon="🏠"
-            label="Noclegi"
-            value={
-              place.accommodation_status
-            }
-            description={
-              place.accommodation_description
-            }
-          />
-
-          <ValueCard
-            icon="🔗"
-            label="Link do noclegu"
-            value={
-              place.accommodation_link
-            }
-          />
-
-          <BooleanCard
-            icon="🐶"
-            label="Nocleg z psem"
-            value={
-              place.accommodation_dogs
-            }
-          />
-        </div>
-      </DetailBlock>
+    <StackedInfoGroup
+      icon="🏠"
+      title="Noclegi"
+      description={
+        place.accommodation_description
+      }
+    >
+      <StackedInfoRow
+        icon="🏠"
+        label="Noclegi"
+        value={
+          place.accommodation_status
+        }
+      />
+      <StackedInfoRow
+        icon="🔗"
+        label="Link do noclegu"
+        value={
+          place.accommodation_link
+        }
+      />
+      <StackedInfoRow
+        icon="🐶"
+        label="Psy"
+        value={
+          place.accommodation_dogs
+        }
+        isBoolean
+      />
+    </StackedInfoGroup>
+  </div>
+</DetailBlock>
 
       <DetailBlock title="🛣️ Dojazd i dostępność">
         <div
