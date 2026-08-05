@@ -622,3 +622,67 @@ export function sortReviews(
       new Date(a.created_at)
   );
 }
+export async function getApprovedReviewStats() {
+  const { data, error } = await supabase
+    .from("place_reviews")
+    .select("place_id, rating")
+    .eq("status", "approved");
+
+  if (error) {
+    throw error;
+  }
+
+  const groupedReviews = {};
+
+  (data ?? []).forEach((review) => {
+    const placeId = String(
+      review.place_id
+    );
+
+    const rating = Number(
+      review.rating
+    );
+
+    if (
+      !Number.isFinite(rating) ||
+      rating < 1 ||
+      rating > 5
+    ) {
+      return;
+    }
+
+    if (!groupedReviews[placeId]) {
+      groupedReviews[placeId] = {
+        total: 0,
+        count: 0,
+      };
+    }
+
+    groupedReviews[placeId].total +=
+      rating;
+
+    groupedReviews[placeId].count += 1;
+  });
+
+  const result = {};
+
+  Object.entries(
+    groupedReviews
+  ).forEach(
+    ([placeId, values]) => {
+      result[placeId] = {
+        averageRating: Number(
+          (
+            values.total /
+            values.count
+          ).toFixed(1)
+        ),
+
+        reviewsCount:
+          values.count,
+      };
+    }
+  );
+
+  return result;
+}

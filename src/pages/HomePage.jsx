@@ -22,16 +22,24 @@ const RADIUS_OPTIONS = [
   },
 ];
 
-function getPlaceScore(place) {
-  const score =
-    place?.sup_score ??
-    place?.statistics?.sup_score ??
-    null;
+function getPlaceRating(place) {
+  const rating =
+    place?.average_rating;
 
-  const number = Number(score);
+  if (
+    rating === null ||
+    rating === undefined ||
+    rating === ""
+  ) {
+    return null;
+  }
+
+  const number =
+    Number(rating);
 
   return Number.isFinite(number)
-    ? Math.round(number)
+    ? number.toFixed(1)
+        .replace(".", ",")
     : null;
 }
 
@@ -620,8 +628,13 @@ function HomePage({
             >
               {placesWithDistance.map(
                 (place) => {
-                  const score =
-                    getPlaceScore(place);
+                  const rating =
+  getPlaceRating(place);
+
+const reviewsCount =
+  Number(
+    place.reviews_count ?? 0
+  );
 
                   const distance =
                     formatDistance(
@@ -668,11 +681,30 @@ function HomePage({
                           </p>
                         )}
 
-                        <p>
-                          ⭐{" "}
-                          {score ??
-                            "Brak"}
-                        </p>
+                       <p>
+  {rating ? (
+    <>
+      ⭐ {rating}{" "}
+      <span
+        style={{
+          color: "#5c6c66",
+        }}
+      >
+        (
+        {reviewsCount}{" "}
+        {reviewsCount === 1
+          ? "opinia"
+          : reviewsCount >= 2 &&
+              reviewsCount <= 4
+            ? "opinie"
+            : "opinii"}
+        )
+      </span>
+    </>
+  ) : (
+    "⭐ Brak opinii"
+  )}
+</p>
 
                         <button
                           className="addPlaceButton"

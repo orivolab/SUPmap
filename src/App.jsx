@@ -39,6 +39,7 @@ import {
 
 import {
   approveReview,
+  getApprovedReviewStats,
   getPendingReviews,
   rejectReview,
 } from "./services/reviewsService";
@@ -1074,53 +1075,91 @@ const pendingCount =
     };
   }, [places]);
 
-  async function initializeApp() {
-    const loadedPlaces =
-      await loadPlaces();
+  async function loadPlaces() {
+  try {
+    const [
+      placesData,
+      reviewStats,
+    ] = await Promise.all([
+      getApprovedPlaces(),
+      getApprovedReviewStats(),
+    ]);
+
+    const placesWithRatings =
+      placesData.map((place) => {
+        const placeReviewStats =
+          reviewStats[
+            String(place.id)
+          ];
+
+        return {
+          ...place,
+
+          average_rating:
+            placeReviewStats
+              ?.averageRating ??
+            null,
+
+          reviews_count:
+            placeReviewStats
+              ?.reviewsCount ??
+            0,
+        };
+      });
+
+    setPlaces(
+      placesWithRatings
+    );
+
+    return placesWithRatings;
+  } catch (error) {
+    console.error(
+      "Błąd pobierania miejsc:",
+      error
+    );
+
+    return [];
+  }
+}
+async function initializeApp() {
+  try {
+    const [
+      session,
+      loadedPlaces,
+    ] = await Promise.all([
+      getSession(),
+      loadPlaces(),
+    ]);
+
+    const currentUser =
+      session?.user ?? null;
+
+    setUser(currentUser);
+
+    if (currentUser) {
+      await loadUserData(
+        currentUser
+      );
+    }
 
     await openPageFromCurrentAddress(
       loadedPlaces
     );
+  } catch (error) {
+    console.error(
+      "Błąd uruchamiania aplikacji:",
+      error
+    );
 
-    try {
-      const session =
-        await getSession();
+    setUser(null);
+    setProfile(null);
+    setFavorites([]);
 
-      const currentUser =
-        session?.user ?? null;
-
-      setUser(currentUser);
-
-      if (currentUser) {
-        await loadUserData(
-          currentUser
-        );
-      }
-    } catch (error) {
-      console.error(
-        "Błąd uruchamiania aplikacji:",
-        error
-      );
-    }
+    await openPageFromCurrentAddress(
+      []
+    );
   }
-
-  async function loadPlaces() {
-    try {
-      const data =
-        await getApprovedPlaces();
-
-      setPlaces(data);
-
-      return data;
-    } catch (error) {
-      console.error(
-        "Błąd pobierania miejsc:",
-        error
-      );
-
-      return [];
-    }
-  }
+}
 
   async function openPageFromCurrentAddress(
     loadedPlaces = null

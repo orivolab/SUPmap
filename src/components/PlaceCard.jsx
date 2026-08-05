@@ -1,15 +1,23 @@
 import NavigationButtons from "./NavigationButtons";
 
-function getPlaceScore(place) {
-  const score =
-    place?.sup_score ??
-    place?.statistics?.sup_score ??
-    null;
+function getPlaceRating(place) {
+  const rating =
+    place?.average_rating;
 
-  const number = Number(score);
+  if (
+    rating === null ||
+    rating === undefined ||
+    rating === ""
+  ) {
+    return null;
+  }
+
+  const number =
+    Number(rating);
 
   return Number.isFinite(number)
-    ? Math.round(number)
+    ? number.toFixed(1)
+        .replace(".", ",")
     : null;
 }
 
@@ -27,7 +35,13 @@ function PlaceCard({
   onFocus,
   onOpen,
 }) {
-  const score = getPlaceScore(place);
+  const rating =
+  getPlaceRating(place);
+
+const reviewsCount =
+  Number(
+    place.reviews_count ?? 0
+  );
 
   return (
     <article
@@ -116,17 +130,24 @@ function PlaceCard({
             </div>
 
             <span
-              style={{
-                flexShrink: 0,
-                padding: "6px 9px",
-                borderRadius: "10px",
-                background: "#f4f7f6",
-                fontSize: "13px",
-                fontWeight: 800,
-              }}
-            >
-              ⭐ {score ?? "—"}
-            </span>
+  title={
+    reviewsCount > 0
+      ? `${reviewsCount} opinii`
+      : "Brak opinii"
+  }
+  style={{
+    flexShrink: 0,
+    padding: "6px 9px",
+    borderRadius: "10px",
+    background: "#f4f7f6",
+    fontSize: "13px",
+    fontWeight: 800,
+  }}
+>
+  {rating
+    ? `${rating} ⭐`
+    : "Brak opinii"}
+</span>
           </div>
 
           <div
