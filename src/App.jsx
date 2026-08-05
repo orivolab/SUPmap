@@ -18,6 +18,7 @@ import ProfilePage from "./pages/ProfilePage";
 import LocationPickerPage from "./pages/LocationPickerPage";
 import EditPlacePage from "./pages/EditPlacePage";
 import PublicProfilePage from "./pages/PublicProfilePage";
+import SupportWidget from "./components/SupportWidget";
 
 import {
   approvePlace,
@@ -915,6 +916,20 @@ function App() {
   const isAdmin =
     user?.email?.toLowerCase() ===
     ADMIN_EMAIL;
+    
+  function renderWithSupport(
+  content
+) {
+  return (
+    <>
+      {content}
+
+      <SupportWidget
+        user={user}
+      />
+    </>
+  );
+}
 
   const visiblePlaces = useMemo(() => {
     const searchedPlaces =
@@ -1779,30 +1794,30 @@ function App() {
   }
 
   if (
-    page === PAGE.DETAILS &&
-    selectedPlace
-  ) {
-    return (
-      <PlaceDetailsPage
-        place={selectedPlace}
-        user={user}
-        onBack={goHome}
-        onOpenAuth={() =>
-          openAuth(PAGE.DETAILS)
-        }
-        onOpenPublicProfile={
-          openPublicProfile
-        }
-      />
-    );
-  }
+  page === PAGE.DETAILS &&
+  selectedPlace
+) {
+  return renderWithSupport(
+    <PlaceDetailsPage
+      place={selectedPlace}
+      user={user}
+      onBack={goHome}
+      onOpenAuth={() =>
+        openAuth(PAGE.DETAILS)
+      }
+      onOpenPublicProfile={
+        openPublicProfile
+      }
+    />
+  );
+}
 
-  if (
-    page === PAGE.PUBLIC_PROFILE &&
-    publicProfileUserId
-  ) {
-    return (
-      <PublicProfilePage
+if (
+  page === PAGE.PUBLIC_PROFILE &&
+  publicProfileUserId
+) {
+    return renderWithSupport(
+  <PublicProfilePage
         userId={publicProfileUserId}
         currentUser={user}
         onBack={() => {
@@ -1822,7 +1837,7 @@ function App() {
   }
 
   if (page === PAGE.ADD_PLACE) {
-    return (
+    return renderWithSupport(
       <AddPlacePage
         position={newPlacePosition}
         selectedImage={selectedImage}
@@ -1849,7 +1864,7 @@ function App() {
   if (
     page === PAGE.ADD_LOCATION
   ) {
-    return (
+    return renderWithSupport(
       <LocationPickerPage
         position={newPlacePosition}
         onSelect={
@@ -1870,7 +1885,7 @@ function App() {
     editingPlace &&
     isAdmin
   ) {
-    return (
+    return renderWithSupport(
       <EditPlacePage
         place={editingPlace}
         position={
@@ -1904,7 +1919,7 @@ function App() {
     editingPlace &&
     isAdmin
   ) {
-    return (
+    return renderWithSupport(
       <LocationPickerPage
         title={`Zmień lokalizację: ${editingPlace.name}`}
         position={
@@ -1924,7 +1939,7 @@ function App() {
   }
 
   if (page === PAGE.AUTH) {
-    return (
+    return renderWithSupport(
       <AuthPage
         onBack={() => {
           if (
@@ -1953,7 +1968,7 @@ function App() {
       Number(profile?.points) ||
       0;
 
-    return (
+    return renderWithSupport(
       <ProfilePage
         profile={profile}
         user={user}
@@ -1986,7 +2001,7 @@ function App() {
     page === PAGE.ADMIN &&
     isAdmin
   ) {
-    return (
+    return renderWithSupport(
       <AdminPage
         approvedPlaces={places}
         pendingPlaces={
@@ -2028,7 +2043,7 @@ function App() {
     );
   }
 
-  return (
+  return renderWithSupport(
     <HomePage
       user={user}
       profile={profile}
