@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 
 import L from "leaflet";
@@ -18,10 +19,10 @@ import {
 } from "../services/placesService";
 
 function getMarkerColor(place) {
-  const markerState =
+  const state =
     getPlaceMarkerState(place);
 
-  switch (markerState) {
+  switch (state) {
     case "recommended":
       return "#2f9e6f";
 
@@ -43,7 +44,8 @@ function getMarkerColor(place) {
 }
 
 function createMarkerIcon(place) {
-  const color = getMarkerColor(place);
+  const color =
+    getMarkerColor(place);
 
   return L.divIcon({
     className: "",
@@ -60,8 +62,7 @@ function createMarkerIcon(place) {
           border-radius: 50% 50% 50% 0;
           background: ${color};
           border: 3px solid white;
-          box-shadow:
-            0 4px 10px rgba(0, 0, 0, 0.28);
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
           transform: rotate(-45deg);
         "
       >
@@ -83,13 +84,68 @@ function createMarkerIcon(place) {
 
 function MapAutoFit({
   places,
+  focusedPlaceId,
+  markerRefs,
   defaultCenter,
   defaultZoom,
 }) {
   const map = useMap();
 
   useEffect(() => {
-    const validPositions = places
+    if (!focusedPlaceId) {
+      return;
+    }
+
+    const focusedPlace =
+      places.find(
+        (place) =>
+          String(place.id) ===
+          String(focusedPlaceId)
+      );
+
+    if (!focusedPlace) {
+      return;
+    }
+
+    const lat =
+      Number(focusedPlace.lat);
+
+    const lng =
+      Number(focusedPlace.lng);
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng)
+    ) {
+      return;
+    }
+
+    map.flyTo(
+      [lat, lng],
+      14,
+      {
+        duration: 0.9,
+      }
+    );
+
+    window.setTimeout(() => {
+      markerRefs.current[
+        focusedPlace.id
+      ]?.openPopup();
+    }, 950);
+  }, [
+    map,
+    places,
+    focusedPlaceId,
+    markerRefs,
+  ]);
+
+  useEffect(() => {
+    if (focusedPlaceId) {
+      return;
+    }
+
+    const positions = places
       .map((place) => [
         Number(place.lat),
         Number(place.lng),
@@ -100,7 +156,7 @@ function MapAutoFit({
           Number.isFinite(lng)
       );
 
-    if (validPositions.length === 0) {
+    if (positions.length === 0) {
       map.setView(
         defaultCenter,
         defaultZoom
@@ -109,29 +165,30 @@ function MapAutoFit({
       return;
     }
 
-    if (validPositions.length === 1) {
+    if (positions.length === 1) {
       map.flyTo(
-        validPositions[0],
+        positions[0],
         12,
         {
-          duration: 0.8,
+          duration: 0.7,
         }
       );
 
       return;
     }
 
-    const bounds =
-      L.latLngBounds(validPositions);
-
-    map.flyToBounds(bounds, {
-      padding: [55, 55],
-      maxZoom: 11,
-      duration: 0.8,
-    });
+    map.flyToBounds(
+      L.latLngBounds(positions),
+      {
+        padding: [55, 55],
+        maxZoom: 11,
+        duration: 0.7,
+      }
+    );
   }, [
     map,
     places,
+    focusedPlaceId,
     defaultCenter,
     defaultZoom,
   ]);
@@ -140,7 +197,7 @@ function MapAutoFit({
 }
 
 function MarkerLegend() {
-  const legendItems = [
+  const items = [
     {
       color: "#2f9e6f",
       label: "Polecane",
@@ -155,7 +212,7 @@ function MarkerLegend() {
     },
     {
       color: "#dc3545",
-      label: "Aktualne zagrożenie",
+      label: "Zagrożenie",
     },
     {
       color: "#868e96",
@@ -164,30 +221,14 @@ function MarkerLegend() {
   ];
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        zIndex: 1000,
-        left: "14px",
-        bottom: "14px",
-        padding: "10px 12px",
-        borderRadius: "12px",
-        background:
-          "rgba(255, 255, 255, 0.94)",
-        boxShadow:
-          "0 4px 16px rgba(0, 0, 0, 0.16)",
-        fontSize: "12px",
-        lineHeight: 1.4,
-      }}
-    >
-      {legendItems.map((item) => (
+    <div className="markerLegend">
+      {items.map((item) => (
         <div
           key={item.label}
           style={{
             display: "flex",
             alignItems: "center",
             gap: "7px",
-            marginBottom: "4px",
           }}
         >
           <span
@@ -209,16 +250,23 @@ function MarkerLegend() {
 
 function PlaceMap({
   places = [],
+  focusedPlaceId = null,
   onSelectPlace,
   center = [52.1, 19.4],
   zoom = 6,
-  height = "500px",
+  height = "700px",
 }) {
+  const markerRefs =
+    useRef({});
+
   const validPlaces = useMemo(
     () =>
       places.filter((place) => {
-        const lat = Number(place.lat);
-        const lng = Number(place.lng);
+        const lat =
+          Number(place.lat);
+
+        const lng =
+          Number(place.lng);
 
         return (
           Number.isFinite(lat) &&
@@ -259,6 +307,10 @@ function PlaceMap({
 
         <MapAutoFit
           places={validPlaces}
+          focusedPlaceId={
+            focusedPlaceId
+          }
+          markerRefs={markerRefs}
           defaultCenter={center}
           defaultZoom={zoom}
         />
@@ -267,6 +319,17 @@ function PlaceMap({
           ({ place, icon }) => (
             <Marker
               key={`place-${place.id}`}
+              ref={(marker) => {
+                if (marker) {
+                  markerRefs.current[
+                    place.id
+                  ] = marker;
+                } else {
+                  delete markerRefs.current[
+                    place.id
+                  ];
+                }
+              }}
               position={[
                 Number(place.lat),
                 Number(place.lng),
@@ -276,12 +339,27 @@ function PlaceMap({
               <Popup>
                 <div
                   style={{
-                    minWidth: "170px",
+                    width: "210px",
                   }}
                 >
+                  {place.image_url && (
+                    <img
+                      src={place.image_url}
+                      alt={place.name}
+                      style={{
+                        width: "100%",
+                        height: "110px",
+                        display: "block",
+                        objectFit: "cover",
+                        borderRadius: "10px",
+                        marginBottom: "10px",
+                      }}
+                    />
+                  )}
+
                   <strong
                     style={{
-                      fontSize: "15px",
+                      fontSize: "16px",
                     }}
                   >
                     {place.name}
@@ -290,30 +368,26 @@ function PlaceMap({
                   {place.city && (
                     <p
                       style={{
-                        margin:
-                          "4px 0 10px",
+                        margin: "5px 0 10px",
                         color: "#5c6c66",
                       }}
                     >
-                      {place.city}
+                      📍 {place.city}
                     </p>
                   )}
 
                   <button
                     type="button"
                     onClick={() =>
-                      onSelectPlace?.(
-                        place
-                      )
+                      onSelectPlace?.(place)
                     }
                     style={{
                       width: "100%",
-                      padding: "8px 12px",
+                      padding: "9px 12px",
                       border: "none",
                       borderRadius: "9px",
-                      background:
-                        "#377f6a",
-                      color: "white",
+                      background: "#377f6a",
+                      color: "#ffffff",
                       fontWeight: 700,
                       cursor: "pointer",
                     }}
