@@ -186,3 +186,70 @@ export async function submitSupportTicket({
 
   return data;
 }
+export async function getSupportTickets() {
+  const { data, error } =
+    await supabase
+      .from("support_tickets")
+      .select("*")
+      .order("created_at", {
+        ascending: false,
+      });
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? [];
+}
+
+export async function updateSupportTicketStatus(
+  ticketId,
+  status
+) {
+  const allowedStatuses = [
+    "new",
+    "in_progress",
+    "resolved",
+    "closed",
+  ];
+
+  if (
+    !allowedStatuses.includes(status)
+  ) {
+    throw new Error(
+      "Nieprawidłowy status zgłoszenia."
+    );
+  }
+
+  const { data, error } =
+    await supabase
+      .from("support_tickets")
+      .update({
+        status,
+        updated_at:
+          new Date().toISOString(),
+      })
+      .eq("id", ticketId)
+      .select()
+      .single();
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
+export async function deleteSupportTicket(
+  ticketId
+) {
+  const { error } =
+    await supabase
+      .from("support_tickets")
+      .delete()
+      .eq("id", ticketId);
+
+  if (error) {
+    throw error;
+  }
+}

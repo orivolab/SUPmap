@@ -19,6 +19,11 @@ import LocationPickerPage from "./pages/LocationPickerPage";
 import EditPlacePage from "./pages/EditPlacePage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import SupportWidget from "./components/SupportWidget";
+import {
+  deleteSupportTicket,
+  getSupportTickets,
+  updateSupportTicketStatus,
+} from "./services/supportService";
 
 import {
   approvePlace,
@@ -835,6 +840,10 @@ function App() {
     pendingPhotos,
     setPendingPhotos,
   ] = useState([]);
+  const [
+  supportTickets,
+  setSupportTickets,
+] = useState([]);
 
   const [
     selectedPlace,
@@ -948,10 +957,17 @@ function App() {
     activeFilters,
   ]);
 
-  const pendingCount =
-    pendingPlaces.length +
-    pendingReviews.length +
-    pendingPhotos.length;
+  const newSupportTicketsCount =
+  supportTickets.filter(
+    (ticket) =>
+      ticket.status === "new"
+  ).length;
+
+const pendingCount =
+  pendingPlaces.length +
+  pendingReviews.length +
+  pendingPhotos.length +
+  newSupportTicketsCount;
 
   useEffect(() => {
     initializeApp();
@@ -1199,39 +1215,45 @@ function App() {
   }
 
   async function loadAdminData() {
-    try {
-      const [
-        placesData,
-        reviewsData,
-        photosData,
-      ] = await Promise.all([
-        getPendingPlaces(),
-        getPendingReviews(),
-        getPendingPhotos(),
-      ]);
+  try {
+    const [
+      placesData,
+      reviewsData,
+      photosData,
+      ticketsData,
+    ] = await Promise.all([
+      getPendingPlaces(),
+      getPendingReviews(),
+      getPendingPhotos(),
+      getSupportTickets(),
+    ]);
 
-      setPendingPlaces(
-        placesData
-      );
+    setPendingPlaces(
+      placesData
+    );
 
-      setPendingReviews(
-        reviewsData
-      );
+    setPendingReviews(
+      reviewsData
+    );
 
-      setPendingPhotos(
-        photosData
-      );
-    } catch (error) {
-      console.error(
-        "Błąd pobierania panelu administratora:",
-        error
-      );
+    setPendingPhotos(
+      photosData
+    );
 
-      setAdminMessage(
-        `Błąd: ${error.message}`
-      );
-    }
+    setSupportTickets(
+      ticketsData
+    );
+  } catch (error) {
+    console.error(
+      "Błąd pobierania panelu administratora:",
+      error
+    );
+
+    setAdminMessage(
+      `Błąd: ${error.message}`
+    );
   }
+}
 
   function goHome() {
     changeBrowserAddress("/");
@@ -1811,7 +1833,74 @@ function App() {
     />
   );
 }
+async function handleSupportStatusChange(
+  ticket,
+  status
+) {
+  setAdminMessage(
+    "Zapisywanie statusu zgłoszenia..."
+  );
 
+  try {
+    await updateSupportTicketStatus(
+      ticket.id,
+      status
+    );
+
+    await loadAdminData();
+
+    setAdminMessage(
+      "Status zgłoszenia został zmieniony."
+    );
+  } catch (error) {
+    console.error(
+      "Błąd zmiany statusu zgłoszenia:",
+      error
+    );
+
+    setAdminMessage(
+      `Błąd: ${error.message}`
+    );
+  }
+}
+
+async function handleDeleteSupportTicket(
+  ticket
+) {
+  const confirmed =
+    window.confirm(
+      `Czy na pewno chcesz usunąć zgłoszenie „${ticket.subject}”?`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  setAdminMessage(
+    "Usuwanie zgłoszenia..."
+  );
+
+  try {
+    await deleteSupportTicket(
+      ticket.id
+    );
+
+    await loadAdminData();
+
+    setAdminMessage(
+      "Zgłoszenie zostało usunięte."
+    );
+  } catch (error) {
+    console.error(
+      "Błąd usuwania zgłoszenia:",
+      error
+    );
+
+    setAdminMessage(
+      `Błąd: ${error.message}`
+    );
+  }
+}
 if (
   page === PAGE.PUBLIC_PROFILE &&
   publicProfileUserId
@@ -2013,6 +2102,9 @@ if (
         pendingPhotos={
           pendingPhotos
         }
+        supportTickets={
+  supportTickets
+}
         message={adminMessage}
         onBack={goHome}
         onLogout={
@@ -2039,6 +2131,12 @@ if (
         onRejectPhoto={
           handleRejectPhoto
         }
+        onSupportStatusChange={
+  handleSupportStatusChange
+}
+onDeleteSupportTicket={
+  handleDeleteSupportTicket
+}
       />
     );
   }

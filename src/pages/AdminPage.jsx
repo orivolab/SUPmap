@@ -4,6 +4,7 @@ const TABS = {
   PENDING_PLACES: "pending-places",
   PENDING_REVIEWS: "pending-reviews",
   PENDING_PHOTOS: "pending-photos",
+  SUPPORT_TICKETS: "support-tickets",
   APPROVED_PLACES: "approved-places",
 };
 
@@ -12,6 +13,7 @@ function AdminPage({
   pendingPlaces,
   pendingReviews,
   pendingPhotos,
+  supportTickets = [],
   message,
   onBack,
   onLogout,
@@ -22,10 +24,18 @@ function AdminPage({
   onRejectReview,
   onApprovePhoto,
   onRejectPhoto,
+  onSupportStatusChange,
+  onDeleteSupportTicket,
 }) {
   const [activeTab, setActiveTab] = useState(
     TABS.PENDING_PLACES
   );
+  
+const newSupportTicketsCount =
+  supportTickets.filter(
+    (ticket) =>
+      ticket.status === "new"
+  ).length;
 
   function TabButton({
     tab,
@@ -91,7 +101,10 @@ function AdminPage({
         <strong>{pendingReviews.length}</strong>
         {" · "}
         Oczekujące zdjęcia:{" "}
-        <strong>{pendingPhotos.length}</strong>
+<strong>{pendingPhotos.length}</strong>
+{" · "}
+Nowe zgłoszenia pomocy:{" "}
+<strong>{newSupportTicketsCount}</strong>
       </p>
 
       {message && (
@@ -132,7 +145,291 @@ function AdminPage({
           label="Zatwierdzone"
           count={approvedPlaces.length}
         />
+
+        <TabButton
+          tab={TABS.SUPPORT_TICKETS}
+          label="Zgłoszenia pomocy"
+          count={newSupportTicketsCount}
+        />
       </div>
+
+{activeTab === TABS.SUPPORT_TICKETS && (
+  <section>
+    <h2>📬 Zgłoszenia użytkowników</h2>
+
+    {supportTickets.length === 0 ? (
+      <div className="emptyPhotos">
+        <p>
+          Nie ma jeszcze żadnych zgłoszeń.
+        </p>
+      </div>
+    ) : (
+      <div className="adminList">
+        {supportTickets.map((ticket) => {
+          const statusLabels = {
+            new: "🟢 Nowe",
+            in_progress: "🟡 W trakcie",
+            resolved: "✅ Rozwiązane",
+            closed: "⚪ Zamknięte",
+          };
+
+          return (
+            <article
+              className="adminCard"
+              key={`support-${ticket.id}`}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems:
+                    "flex-start",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      margin: "0 0 8px",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {statusLabels[
+                      ticket.status
+                    ] || ticket.status}
+                  </p>
+
+                  <h2
+                    style={{
+                      margin:
+                        "0 0 10px",
+                    }}
+                  >
+                    {ticket.subject}
+                  </h2>
+
+                  <p
+                    style={{
+                      margin:
+                        "0 0 8px",
+                    }}
+                  >
+                    Kategoria:{" "}
+                    <strong>
+                      {ticket.category}
+                    </strong>
+                  </p>
+                </div>
+
+                <select
+                  value={ticket.status}
+                  onChange={(event) =>
+                    onSupportStatusChange?.(
+                      ticket,
+                      event.target.value
+                    )
+                  }
+                  style={{
+                    padding: "10px 12px",
+                    border:
+                      "1px solid #d8e2de",
+                    borderRadius: "12px",
+                    background: "#ffffff",
+                    font: "inherit",
+                    fontWeight: 700,
+                  }}
+                >
+                  <option value="new">
+                    Nowe
+                  </option>
+
+                  <option value="in_progress">
+                    W trakcie
+                  </option>
+
+                  <option value="resolved">
+                    Rozwiązane
+                  </option>
+
+                  <option value="closed">
+                    Zamknięte
+                  </option>
+                </select>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "18px",
+                  padding: "16px",
+                  borderRadius: "14px",
+                  background: "#f4f7f6",
+                  lineHeight: 1.65,
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {ticket.message}
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: "8px",
+                  marginTop: "18px",
+                  color: "#5c6c66",
+                  fontSize: "14px",
+                }}
+              >
+                <p style={{ margin: 0 }}>
+                  ✉️ E-mail:{" "}
+                  <strong>
+                    {ticket.email ||
+                      "Nie podano"}
+                  </strong>
+                </p>
+
+                <p style={{ margin: 0 }}>
+                  👤 ID użytkownika:{" "}
+                  <strong>
+                    {ticket.user_id ||
+                      "Osoba niezalogowana"}
+                  </strong>
+                </p>
+
+                <p style={{ margin: 0 }}>
+                  🕒 Wysłano:{" "}
+                  <strong>
+                    {new Date(
+                      ticket.created_at
+                    ).toLocaleString(
+                      "pl-PL",
+                      {
+                        dateStyle:
+                          "medium",
+                        timeStyle:
+                          "short",
+                      }
+                    )}
+                  </strong>
+                </p>
+
+                {ticket.page_url && (
+                  <p style={{ margin: 0 }}>
+                    📄 Strona:{" "}
+                    <a
+                      href={ticket.page_url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {ticket.page_url}
+                    </a>
+                  </p>
+                )}
+
+                {ticket.app_version && (
+                  <p style={{ margin: 0 }}>
+                    📦 Wersja aplikacji:{" "}
+                    <strong>
+                      {ticket.app_version}
+                    </strong>
+                  </p>
+                )}
+
+                {ticket.user_agent && (
+                  <details>
+                    <summary
+                      style={{
+                        cursor: "pointer",
+                        fontWeight: 700,
+                      }}
+                    >
+                      Dane urządzenia i
+                      przeglądarki
+                    </summary>
+
+                    <p
+                      style={{
+                        overflowWrap:
+                          "anywhere",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {ticket.user_agent}
+                    </p>
+                  </details>
+                )}
+              </div>
+
+              {ticket.screenshot_url && (
+                <div
+                  style={{
+                    marginTop: "18px",
+                  }}
+                >
+                  <p
+                    style={{
+                      margin:
+                        "0 0 10px",
+                      fontWeight: 800,
+                    }}
+                  >
+                    📷 Załączony zrzut ekranu
+                  </p>
+
+                  <a
+                    href={
+                      ticket.screenshot_url
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      src={
+                        ticket.screenshot_url
+                      }
+                      alt="Zrzut ekranu ze zgłoszenia"
+                      style={{
+                        width:
+                          "min(100%, 620px)",
+                        maxHeight: "520px",
+                        objectFit: "contain",
+                        borderRadius:
+                          "16px",
+                        border:
+                          "1px solid #d8e2de",
+                        display: "block",
+                      }}
+                    />
+                  </a>
+                </div>
+              )}
+
+              <div
+                className="adminActions"
+                style={{
+                  marginTop: "20px",
+                }}
+              >
+                <button
+                  type="button"
+                  className="rejectButton"
+                  onClick={() =>
+                    onDeleteSupportTicket?.(
+                      ticket
+                    )
+                  }
+                >
+                  🗑 Usuń zgłoszenie
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </section>
+)}
 
       {activeTab === TABS.PENDING_PLACES && (
         <section>
