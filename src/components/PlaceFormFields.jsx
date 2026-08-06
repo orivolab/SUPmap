@@ -1322,24 +1322,24 @@ function PlaceFormFields({
         place.campsite_status ||
         place.camper_status
       }
-      options={[
-        {
-          value: "",
-          label: "Brak informacji",
-        },
-        {
-          value: "Na miejscu",
-          label: "Na miejscu",
-        },
-        {
-          value: "W pobliżu",
-          label: "W pobliżu",
-        },
-        {
-          value: "Brak",
-          label: "Brak",
-        },
-      ]}
+     options={[
+  {
+    value: "Brak informacji",
+    label: "Brak informacji",
+  },
+  {
+    value: "Tak",
+    label: "Tak",
+  },
+  {
+    value: "Nie",
+    label: "Nie",
+  },
+  {
+    value: "W pobliżu",
+    label: "W pobliżu",
+  },
+]}
     />
 
     <TextareaField
