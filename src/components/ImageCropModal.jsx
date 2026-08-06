@@ -194,34 +194,34 @@ async function getCroppedImage(
   );
 
   return new Promise(
-  (resolve, reject) => {
-    croppedCanvas.toBlob(
-      (blob) => {
-        if (!blob) {
-          reject(
-            new Error(
-              "Nie udało się zapisać zdjęcia."
-            )
+    (resolve, reject) => {
+      croppedCanvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(
+              new Error(
+                "Nie udało się zapisać zdjęcia."
+              )
+            );
+
+            return;
+          }
+
+          const file = new File(
+            [blob],
+            `cropped-${Date.now()}.jpg`,
+            {
+              type: "image/jpeg",
+            }
           );
 
-          return;
-        }
-
-        const file = new File(
-          [blob],
-          `cropped-${Date.now()}.jpg`,
-          {
-            type: "image/jpeg",
-          }
-        );
-
-        resolve(file);
-      },
-      "image/jpeg",
-      0.9
-    );
-  }
-);
+          resolve(file);
+        },
+        "image/jpeg",
+        0.9
+      );
+    }
+  );
 }
 
 function ImageCropModal({
@@ -369,15 +369,18 @@ function ImageCropModal({
       aspect,
     ]);
 
- const onCropComplete = useCallback(
-  (croppedArea, croppedPixels) => {
-    console.log("Crop complete");
-    console.log(croppedPixels);
-
-    setCroppedAreaPixels(croppedPixels);
-  },
-  []
-);
+  const onCropComplete =
+    useCallback(
+      (
+        croppedArea,
+        croppedPixels
+      ) => {
+        setCroppedAreaPixels(
+          croppedPixels
+        );
+      },
+      []
+    );
 
   function handleAspectChange(
     aspectId
@@ -397,52 +400,51 @@ function ImageCropModal({
   }
 
   async function handleSave() {
-  if (!croppedAreaPixels) {
-    window.alert(
-      "Kadr nie jest jeszcze gotowy. Porusz lekko zdjęciem i spróbuj ponownie."
-    );
-    return;
-  }
-
-  setSaving(true);
-
-  try {
-    const croppedFile = await getCroppedImage(
-      imageUrl,
-      croppedAreaPixels,
-      rotation
-    );
-
-    if (
-      !croppedFile ||
-      croppedFile.size === 0
-    ) {
-      throw new Error(
-        "Wykadrowany plik jest pusty."
+    if (!croppedAreaPixels) {
+      window.alert(
+        "Poczekaj chwilę, aż kadr zostanie przygotowany."
       );
+
+      return;
     }
 
-    await onSave(croppedFile, {
-      aspect: selectedAspect,
-      aspectId: selectedAspectId,
-      rotation,
-    });
-  } catch (error) {
-    console.error(
-      "Błąd zapisywania kadru:",
-      error
-    );
+    setSaving(true);
 
-    window.alert(
-      `Nie udało się zapisać kadru: ${
-        error?.message ||
-        "Nieznany błąd"
-      }`
-    );
-  } finally {
-    setSaving(false);
+    try {
+      const croppedFile =
+        await getCroppedImage(
+          imageUrl,
+          croppedAreaPixels,
+          rotation
+        );
+
+      await onSave(
+        croppedFile,
+        {
+          aspect:
+            selectedAspect,
+
+          aspectId:
+            allowAspectSelection
+              ? selectedAspectId
+              : null,
+
+          rotation,
+        }
+      );
+    } catch (error) {
+      console.error(
+        "Błąd kadrowania:",
+        error
+      );
+
+      window.alert(
+        error.message
+      );
+    } finally {
+      setSaving(false);
+    }
   }
-}
 
   return (
     <div

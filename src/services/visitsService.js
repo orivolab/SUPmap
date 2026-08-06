@@ -2,7 +2,7 @@ import { supabase } from "../lib/supabase";
 
 const VISIT_IMAGES_BUCKET = "place-images";
 const MAX_VISIT_IMAGE_SIZE =
-  5 * 1024 * 1024;
+  20 * 1024 * 1024;
 
 async function getCurrentUser() {
   const {
@@ -46,13 +46,13 @@ export async function prepareVisitImage(file) {
 
   if (!file.type?.startsWith("image/")) {
     throw new Error(
-      "Możesz wybrać tylko plik ze zdjęciem."
+      "MoĹźesz wybraÄ tylko plik ze zdjÄciem."
     );
   }
 
   if (file.size > MAX_VISIT_IMAGE_SIZE) {
     throw new Error(
-      "Zdjęcie może mieć maksymalnie 5 MB."
+      "ZdjÄcie moĹźe mieÄ maksymalnie 5 MB."
     );
   }
 
@@ -60,7 +60,7 @@ export async function prepareVisitImage(file) {
 
   if (!buffer.byteLength) {
     throw new Error(
-      "Zdjęcie nie zawiera danych."
+      "ZdjÄcie nie zawiera danych."
     );
   }
 
@@ -83,13 +83,13 @@ export async function uploadVisitImage(
 
   if (!user) {
     throw new Error(
-      "Musisz się zalogować, aby dodać zdjęcie."
+      "Musisz siÄ zalogowaÄ, aby dodaÄ zdjÄcie."
     );
   }
 
   if (!image.buffer?.byteLength) {
     throw new Error(
-      "Zdjęcie nie zawiera danych."
+      "ZdjÄcie nie zawiera danych."
     );
   }
 
@@ -118,7 +118,7 @@ export async function uploadVisitImage(
 
   if (!data?.publicUrl) {
     throw new Error(
-      "Nie udało się utworzyć adresu zdjęcia."
+      "Nie udaĹo siÄ utworzyÄ adresu zdjÄcia."
     );
   }
 
@@ -130,6 +130,7 @@ export async function addPlaceVisit({
   visitedAt,
   privateNote,
   image,
+  images = [],
 }) {
   if (!placeId) {
     throw new Error("Nie wybrano miejsca.");
@@ -139,14 +140,35 @@ export async function addPlaceVisit({
 
   if (!user) {
     throw new Error(
-      "Musisz się zalogować, aby oznaczyć wizytę."
+      "Musisz siÄ zalogowaÄ, aby oznaczyÄ wizytÄ."
     );
   }
 
-  let imageUrl = null;
+  const safeImages = Array.isArray(images)
+    ? images.filter(Boolean)
+    : [];
 
   if (image) {
-    imageUrl = await uploadVisitImage(image);
+    safeImages.unshift(image);
+  }
+
+  if (safeImages.length > 10) {
+    throw new Error(
+      "Do jednej wizyty moĹźesz dodaÄ maksymalnie 10 zdjÄÄ."
+    );
+  }
+
+  const imageUrls = [];
+
+  for (const visitImage of safeImages) {
+    const imageUrl =
+      await uploadVisitImage(
+        visitImage
+      );
+
+    if (imageUrl) {
+      imageUrls.push(imageUrl);
+    }
   }
 
   const cleanPrivateNote = String(
@@ -161,7 +183,7 @@ export async function addPlaceVisit({
     Number.isNaN(parsedVisitedAt.getTime())
   ) {
     throw new Error(
-      "Nieprawidłowa data wizyty."
+      "NieprawidĹowa data wizyty."
     );
   }
 
@@ -170,7 +192,7 @@ export async function addPlaceVisit({
     Date.now() + 5 * 60 * 1000
   ) {
     throw new Error(
-      "Data wizyty nie może być z przyszłości."
+      "Data wizyty nie moĹźe byÄ z przyszĹoĹci."
     );
   }
 
@@ -183,7 +205,9 @@ export async function addPlaceVisit({
         parsedVisitedAt.toISOString(),
       private_note:
         cleanPrivateNote || null,
-      image_url: imageUrl,
+      image_url:
+        imageUrls[0] ?? null,
+      image_urls: imageUrls,
     })
     .select()
     .single();
@@ -323,7 +347,7 @@ export async function updateOwnVisit(
 
   if (!user) {
     throw new Error(
-      "Musisz się zalogować."
+      "Musisz siÄ zalogowaÄ."
     );
   }
 
@@ -357,7 +381,7 @@ export async function updateOwnVisit(
       Number.isNaN(parsedDate.getTime())
     ) {
       throw new Error(
-        "Nieprawidłowa data wizyty."
+        "NieprawidĹowa data wizyty."
       );
     }
 
@@ -366,7 +390,7 @@ export async function updateOwnVisit(
       Date.now() + 5 * 60 * 1000
     ) {
       throw new Error(
-        "Data wizyty nie może być z przyszłości."
+        "Data wizyty nie moĹźe byÄ z przyszĹoĹci."
       );
     }
 
@@ -410,7 +434,7 @@ export async function deleteOwnVisit(
 
   if (!user) {
     throw new Error(
-      "Musisz się zalogować."
+      "Musisz siÄ zalogowaÄ."
     );
   }
 
@@ -437,7 +461,7 @@ export function formatVisitDate(
   if (
     Number.isNaN(date.getTime())
   ) {
-    return "Nieprawidłowa data";
+    return "NieprawidĹowa data";
   }
 
   return date.toLocaleString(

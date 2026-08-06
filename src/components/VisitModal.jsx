@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import ImageCropModal from "./ImageCropModal";
+
 import {
   addPlaceVisit,
   deleteOwnVisit,
@@ -37,8 +39,20 @@ function VisitModal({
   const [privateNote, setPrivateNote] =
     useState("");
 
-  const [selectedImage, setSelectedImage] =
+  const [selectedImages, setSelectedImages] =
+    useState([]);
+
+  const [cropQueue, setCropQueue] =
+    useState([]);
+
+  const [cropImageUrl, setCropImageUrl] =
     useState(null);
+
+  const [cropOriginalFileName, setCropOriginalFileName] =
+    useState("");
+
+  const [photoInputKey, setPhotoInputKey] =
+    useState(0);
 
   const [message, setMessage] = useState("");
 
@@ -69,6 +83,22 @@ function VisitModal({
   useEffect(() => {
     loadVisits();
   }, [place?.id, user?.id]);
+
+  useEffect(() => {
+    return () => {
+      if (cropImageUrl) {
+        URL.revokeObjectURL(cropImageUrl);
+      }
+
+      cropQueue.forEach((queuedImage) => {
+        URL.revokeObjectURL(queuedImage.url);
+      });
+
+      selectedImages.forEach((selectedImage) => {
+        URL.revokeObjectURL(selectedImage.previewUrl);
+      });
+    };
+  }, []);
 
   async function loadVisits() {
     if (!place?.id) {
@@ -103,29 +133,265 @@ function VisitModal({
     }
   }
 
-  async function handleImageChange(event) {
-    const file = event.target.files?.[0];
+  function openNextImageForCropping(queue) {
+    const [nextImage, ...rest] = queue;
 
-    if (!file) {
-      setSelectedImage(null);
+    setCropQueue(rest);
+
+    if (!nextImage) {
+      setCropImageUrl(null);
+      setCropOriginalFileName("");
+      return;
+    }
+
+    setCropImageUrl(nextImage.url);
+    setCropOriginalFileName(nextImage.name);
+  }
+
+  function clearSelectedImages() {
+    selectedImages.forEach((selectedImage) => {
+      URL.revokeObjectURL(selectedImage.previewUrl);
+    });
+
+    cropQueue.forEach((queuedImage) => {
+      URL.revokeObjectURL(queuedImage.url);
+    });
+
+    if (cropImageUrl) {
+      URL.revokeObjectURL(cropImageUrl);
+    }
+
+    setSelectedImages([]);
+    setCropQueue([]);
+    setCropImageUrl(null);
+    setCropOriginalFileName("");
+    setPhotoInputKey((current) => current + 1);
+  }
+
+  function removeSelectedImage(imageId) {
+    setSelectedImages((currentImages) => {
+      const imageToRemove = currentImages.find(
+        (image) => image.id === imageId
+      );
+
+      if (imageToRemove) {
+        URL.revokeObjectURL(
+          imageToRemove.previewUrl
+        );
+      }
+
+      return currentImages.filter(
+        (image) => image.id !== imageId
+      );
+    });
+  }
+
+  function handleImageChange(event) {
+    const files = Array.from(
+      event.target.files || []
+    );
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const availableSlots =
+      10 -
+      selectedImages.length -
+      cropQueue.length -
+      (cropImageUrl ? 1 : 0);
+
+    if (availableSlots <= 0) {
+      setMessage(
+        "Możesz dodać maksymalnie 10 zdjęć do jednej wizyty."
+      );
+      event.target.value = "";
+      return;
+    }
+
+    const filesToProcess =
+      files.slice(0, availableSlots);
+
+    const maximumSize =
+      20 * 1024 * 1024;
+
+    const validFiles = [];
+    const rejectedFiles = [];
+
+    filesToProcess.forEach((file) => {
+      if (
+        !file.type.startsWith("image/")
+      ) {
+        rejectedFiles.push(
+          `${file.name} — to nie jest zdjęcie`
+        );
+        return;
+      }
+
+      if (file.size > maximumSize) {
+        rejectedFiles.push(
+          `${file.name} — przekracza 20 MB`
+        );
+        return;
+      }
+
+      validFiles.push({
+        id: `${Date.now()}-${Math.random()}`,
+        name: file.name,
+        url: URL.createObjectURL(file),
+      });
+    });
+
+    if (validFiles.length === 0) {
+      setMessage(
+        rejectedFiles.join("; ") ||
+          "Nie wybrano prawidłowych zdjęć."
+      );
+      event.target.value = "";
+      return;
+    }
+
+    const combinedQueue = [
+      ...cropQueue,
+      ...validFiles,
+    ];
+
+    if (cropImageUrl) {
+      setCropQueue(combinedQueue);
+    } else {
+      openNextImageForCropping(
+        combinedQueue
+      );
+    }
+
+    const skippedByLimit =
+      files.length -
+      filesToProcess.length;
+
+    const parts = [
+      `Wybrano ${validFiles.length} zdjęć. Ustaw kadr każdego z nich.`,
+    ];
+
+    if (rejectedFiles.length > 0) {
+      parts.push(
+        `Pominięto: ${rejectedFiles.join("; ")}.`
+      );
+    }
+
+    if (skippedByLimit > 0) {
+      parts.push(
+        `Pominięto ${skippedByLimit} zdjęć z powodu limitu 10.`
+      );
+    }
+
+    setMessage(parts.join(" "));
+    event.target.value = "";
+  }
+
+  function handleCropCancel() {
+    if (cropImageUrl) {
+      URL.revokeObjectURL(cropImageUrl);
+    }
+
+    setCropImageUrl(null);
+    setCropOriginalFileName("");
+
+    if (cropQueue.length > 0) {
+      openNextImageForCropping(
+        cropQueue
+      );
+
+      setMessage(
+        "Pominięto to zdjęcie. Ustaw kadr następnego."
+      );
+    } else {
+      setMessage(
+        selectedImages.length > 0
+          ? "Kadrowanie zakończone. Możesz zapisać wizytę."
+          : "Anulowano wybór zdjęć."
+      );
+    }
+  }
+
+  async function handleCropSave(croppedFile) {
+    if (!croppedFile) {
+      setMessage(
+        "Nie udało się przygotować zdjęcia."
+      );
       return;
     }
 
     try {
-      const preparedImage =
-        await prepareVisitImage(file);
+      const finalFile = new File(
+        [croppedFile],
+        cropOriginalFileName ||
+          `wizyta-${Date.now()}.jpg`,
+        {
+          type:
+            croppedFile.type ||
+            "image/jpeg",
+          lastModified: Date.now(),
+        }
+      );
 
-      setSelectedImage(preparedImage);
-      setMessage("");
+      const preparedImage =
+        await prepareVisitImage(
+          finalFile
+        );
+
+      const previewUrl =
+        URL.createObjectURL(finalFile);
+
+      setSelectedImages(
+        (currentImages) => [
+          ...currentImages,
+          {
+            id: `${Date.now()}-${Math.random()}`,
+            file: preparedImage,
+            previewUrl,
+            name: finalFile.name,
+          },
+        ]
+      );
+
+      if (cropImageUrl) {
+        URL.revokeObjectURL(
+          cropImageUrl
+        );
+      }
+
+      setCropImageUrl(null);
+      setCropOriginalFileName("");
+
+      if (cropQueue.length > 0) {
+        openNextImageForCropping(
+          cropQueue
+        );
+
+        setMessage(
+          `Kadr zapisany. Pozostało do wykadrowania: ${cropQueue.length}.`
+        );
+      } else {
+        setMessage(
+          "Wszystkie kadry zapisane. Możesz zapisać wizytę."
+        );
+      }
     } catch (error) {
-      event.target.value = "";
-      setSelectedImage(null);
-      setMessage(error.message);
+      console.error(
+        "Błąd przygotowania zdjęcia:",
+        error
+      );
+
+      setMessage(
+        `Nie udało się przygotować zdjęcia: ${error.message}`
+      );
     }
   }
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    const form = event.currentTarget;
 
     if (!user) {
       setMessage(
@@ -133,6 +399,13 @@ function VisitModal({
       );
 
       onLoginRequired?.();
+      return;
+    }
+
+    if (cropImageUrl) {
+      setMessage(
+        "Najpierw zakończ kadrowanie wszystkich zdjęć."
+      );
       return;
     }
 
@@ -144,17 +417,20 @@ function VisitModal({
         placeId: place.id,
         visitedAt,
         privateNote,
-        image: selectedImage,
+        images: selectedImages.map(
+          (selectedImage) =>
+            selectedImage.file
+        ),
       });
+
+      form.reset();
 
       setVisitedAt(
         getCurrentLocalDateTime()
       );
 
       setPrivateNote("");
-      setSelectedImage(null);
-
-      event.currentTarget.reset();
+      clearSelectedImages();
 
       setMessage(
         "Wizyta została zapisana. Miejsce jest już na Twojej liście odwiedzonych."
@@ -268,7 +544,8 @@ function VisitModal({
     return null;
   }
 
-  return (
+   return (
+  <>
     <div
       style={{
         position: "fixed",
@@ -523,11 +800,13 @@ function VisitModal({
                 fontWeight: 700,
               }}
             >
-              Zdjęcie z wizyty — opcjonalnie
+              Zdjęcia z wizyty — opcjonalnie
 
               <input
+                key={photoInputKey}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageChange}
                 style={{
                   width: "100%",
@@ -544,24 +823,121 @@ function VisitModal({
                 style={{
                   fontWeight: 400,
                   color: "#5c6c66",
+                  lineHeight: 1.45,
                 }}
               >
-                Maksymalny rozmiar zdjęcia:
-                5 MB.
+                Możesz dodać maksymalnie 10 zdjęć.
+                Każde może mieć do 20 MB.
+                Po wybraniu ustawisz osobny kadr
+                każdego zdjęcia.
               </small>
             </label>
 
-            {selectedImage && (
-              <p
+            {selectedImages.length > 0 && (
+              <div
                 style={{
-                  margin: 0,
+                  display: "grid",
+                  gap: "14px",
                 }}
               >
-                Wybrane zdjęcie:{" "}
-                <strong>
-                  {selectedImage.name}
-                </strong>
-              </p>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems: "center",
+                    gap: "12px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <strong>
+                    Wybrane zdjęcia:{" "}
+                    {selectedImages.length}
+                  </strong>
+
+                  <button
+                    type="button"
+                    className="backButton"
+                    onClick={
+                      clearSelectedImages
+                    }
+                  >
+                    Usuń wszystkie
+                  </button>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns:
+                      "repeat(auto-fit, minmax(140px, 1fr))",
+                    gap: "12px",
+                  }}
+                >
+                  {selectedImages.map(
+                    (selectedImage) => (
+                      <article
+                        key={selectedImage.id}
+                        style={{
+                          overflow: "hidden",
+                          border:
+                            "1px solid #d8e2de",
+                          borderRadius: "14px",
+                          background: "#ffffff",
+                        }}
+                      >
+                        <img
+                          src={
+                            selectedImage.previewUrl
+                          }
+                          alt={`Podgląd: ${selectedImage.name}`}
+                          style={{
+                            width: "100%",
+                            height: "140px",
+                            display: "block",
+                            objectFit: "cover",
+                          }}
+                        />
+
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: "8px",
+                            padding: "10px",
+                          }}
+                        >
+                          <small
+                            style={{
+                              overflow: "hidden",
+                              textOverflow:
+                                "ellipsis",
+                              whiteSpace:
+                                "nowrap",
+                            }}
+                            title={
+                              selectedImage.name
+                            }
+                          >
+                            {selectedImage.name}
+                          </small>
+
+                          <button
+                            type="button"
+                            className="backButton"
+                            onClick={() =>
+                              removeSelectedImage(
+                                selectedImage.id
+                              )
+                            }
+                          >
+                            Usuń
+                          </button>
+                        </div>
+                      </article>
+                    )
+                  )}
+                </div>
+              </div>
             )}
 
             <button
@@ -794,20 +1170,47 @@ function VisitModal({
                           </div>
                         </div>
 
-                        {visit.image_url && (
-                          <img
-                            src={visit.image_url}
-                            alt={`Zdjęcie z wizyty w ${place.name}`}
+                        {(
+                          Array.isArray(
+                            visit.image_urls
+                          )
+                            ? visit.image_urls
+                            : visit.image_url
+                              ? [visit.image_url]
+                              : []
+                        ).length > 0 && (
+                          <div
                             style={{
-                              width: "100%",
-                              maxHeight: "320px",
-                              objectFit: "cover",
-                              borderRadius:
-                                "14px",
-                              marginTop:
-                                "18px",
+                              display: "grid",
+                              gridTemplateColumns:
+                                "repeat(auto-fit, minmax(180px, 1fr))",
+                              gap: "12px",
+                              marginTop: "18px",
                             }}
-                          />
+                          >
+                            {(
+                              Array.isArray(
+                                visit.image_urls
+                              )
+                                ? visit.image_urls
+                                : [visit.image_url]
+                            ).map(
+                              (imageUrl, index) => (
+                                <img
+                                  key={`${visit.id}-${index}`}
+                                  src={imageUrl}
+                                  alt={`Zdjęcie ${index + 1} z wizyty w ${place.name}`}
+                                  style={{
+                                    width: "100%",
+                                    height: "220px",
+                                    objectFit: "cover",
+                                    borderRadius:
+                                      "14px",
+                                  }}
+                                />
+                              )
+                            )}
+                          </div>
                         )}
                       </>
                     )}
@@ -817,9 +1220,20 @@ function VisitModal({
             )}
           </section>
         )}
-      </div>
+         </div>
     </div>
-  );
+
+    {cropImageUrl && (
+      <ImageCropModal
+        imageUrl={cropImageUrl}
+        allowAspectSelection
+        initialAspectId="landscape"
+        onCancel={handleCropCancel}
+        onSave={handleCropSave}
+      />
+    )}
+  </>
+);
 }
 
 export default VisitModal;
