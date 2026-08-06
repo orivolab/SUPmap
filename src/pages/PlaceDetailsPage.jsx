@@ -14,6 +14,7 @@ import VisitModal from "../components/VisitModal";
 import LiveReportModal from "../components/LiveReportModal";
 import OverviewSidebar from "../components/OverviewSidebar";
 import ImageCropModal from "../components/ImageCropModal";
+import DateTimePicker from "../components/DateTimePicker";
 
 import {
   addFavorite,
@@ -322,6 +323,8 @@ function PlaceDetailsPage({
     selectedPhotos,
     setSelectedPhotos,
   ] = useState([]);
+  const [photoTakenAt, setPhotoTakenAt] = useState("");
+
 
   const [
     photoCropQueue,
@@ -1245,19 +1248,18 @@ function PlaceDetailsPage({
             formData.get(
               "photoCategory"
             ),
-          takenAt:
-            formData.get(
-              "takenAt"
-            ),
+         takenAt:
+  photoTakenAt || null,
         });
       }
 
       const sentCount =
         selectedPhotos.length;
 
-      form.reset();
-      setPhotoCategory("");
-      clearAllSelectedPhotos();
+     form.reset();
+setPhotoCategory("");
+setPhotoTakenAt("");
+clearAllSelectedPhotos();
 
       setPhotoMessage(
         `${sentCount} zdjęć zostało wysłanych i czeka na zatwierdzenie przez administratora.`
@@ -2539,9 +2541,9 @@ function PlaceDetailsPage({
               </label>
 
               <DateTimePicker
-  value={visitedAt}
-  onChange={setVisitedAt}
-  max={getCurrentLocalDateTime()}
+  value={photoTakenAt}
+  onChange={setPhotoTakenAt}
+  max={new Date().toISOString().slice(0, 16)}
 />
 
               <button
