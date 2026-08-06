@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import ImageCropModal from "./ImageCropModal";
+import DateTimePicker from "./DateTimePicker";
 
 import {
   addPlaceVisit,
@@ -717,37 +718,11 @@ function VisitModal({
               marginTop: "28px",
             }}
           >
-            <label
-              style={{
-                display: "grid",
-                gap: "9px",
-                fontSize: "17px",
-                fontWeight: 700,
-              }}
-            >
-              Data i godzina wizyty
-
-              <input
-                type="datetime-local"
-                value={visitedAt}
-                max={getCurrentLocalDateTime()}
-                onChange={(event) =>
-                  setVisitedAt(
-                    event.target.value
-                  )
-                }
-                required
-                style={{
-                  width: "100%",
-                  boxSizing: "border-box",
-                  padding: "14px 15px",
-                  border:
-                    "1px solid #d8e2de",
-                  borderRadius: "12px",
-                  fontSize: "16px",
-                }}
-              />
-            </label>
+            <DateTimePicker
+  value={visitedAt}
+  onChange={setVisitedAt}
+  max={getCurrentLocalDateTime()}
+/>
 
             <label
               style={{
@@ -1008,39 +983,11 @@ function VisitModal({
                           gap: "16px",
                         }}
                       >
-                        <label
-                          style={{
-                            display: "grid",
-                            gap: "8px",
-                            fontWeight: 700,
-                          }}
-                        >
-                          Data wizyty
-
-                          <input
-                            type="datetime-local"
-                            value={editingDate}
-                            max={getCurrentLocalDateTime()}
-                            onChange={(
-                              event
-                            ) =>
-                              setEditingDate(
-                                event.target
-                                  .value
-                              )
-                            }
-                            style={{
-                              width: "100%",
-                              boxSizing:
-                                "border-box",
-                              padding: "13px",
-                              border:
-                                "1px solid #d8e2de",
-                              borderRadius:
-                                "12px",
-                            }}
-                          />
-                        </label>
+                        <DateTimePicker
+  value={visitedAt}
+  onChange={setVisitedAt}
+  max={getCurrentLocalDateTime()}
+/>
 
                         <label
                           style={{

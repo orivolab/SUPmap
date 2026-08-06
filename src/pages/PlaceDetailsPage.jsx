@@ -2538,18 +2538,11 @@ function PlaceDetailsPage({
                 </select>
               </label>
 
-              <label>
-                Data wykonania zdjęcia —
-                opcjonalnie
-
-                <input
-                  type="datetime-local"
-                  name="takenAt"
-                  max={new Date()
-                    .toISOString()
-                    .slice(0, 16)}
-                />
-              </label>
+              <DateTimePicker
+  value={visitedAt}
+  onChange={setVisitedAt}
+  max={getCurrentLocalDateTime()}
+/>
 
               <button
                 type="submit"

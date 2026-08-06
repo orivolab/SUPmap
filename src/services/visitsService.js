@@ -46,13 +46,13 @@ export async function prepareVisitImage(file) {
 
   if (!file.type?.startsWith("image/")) {
     throw new Error(
-      "MoĹźesz wybraÄ tylko plik ze zdjÄciem."
+      "Mozesz wybraćtylko plik ze zdjęciem."
     );
   }
 
   if (file.size > MAX_VISIT_IMAGE_SIZE) {
     throw new Error(
-      "ZdjÄcie moĹźe mieÄ maksymalnie 5 MB."
+      "Zdjęcie moze mieć maksymalnie 50 MB."
     );
   }
 
@@ -60,7 +60,7 @@ export async function prepareVisitImage(file) {
 
   if (!buffer.byteLength) {
     throw new Error(
-      "ZdjÄcie nie zawiera danych."
+      "Zdjęcie nie zawiera danych."
     );
   }
 
@@ -83,13 +83,13 @@ export async function uploadVisitImage(
 
   if (!user) {
     throw new Error(
-      "Musisz siÄ zalogowaÄ, aby dodaÄ zdjÄcie."
+      "Musisz się zalogować, aby dodać zdjęcie."
     );
   }
 
   if (!image.buffer?.byteLength) {
     throw new Error(
-      "ZdjÄcie nie zawiera danych."
+      "Zdjęcie nie zawiera danych."
     );
   }
 
@@ -118,7 +118,7 @@ export async function uploadVisitImage(
 
   if (!data?.publicUrl) {
     throw new Error(
-      "Nie udaĹo siÄ utworzyÄ adresu zdjÄcia."
+      "Nie udał się utworzyć adresu zdjęcia."
     );
   }
 
@@ -140,7 +140,7 @@ export async function addPlaceVisit({
 
   if (!user) {
     throw new Error(
-      "Musisz siÄ zalogowaÄ, aby oznaczyÄ wizytÄ."
+      "Musisz się zalogować, aby oznaczyć wizytę."
     );
   }
 
@@ -154,7 +154,7 @@ export async function addPlaceVisit({
 
   if (safeImages.length > 10) {
     throw new Error(
-      "Do jednej wizyty moĹźesz dodaÄ maksymalnie 10 zdjÄÄ."
+      "Do jednej wizyty mozesz dodać maksymalnie 10 zdjęć."
     );
   }
 
@@ -183,7 +183,7 @@ export async function addPlaceVisit({
     Number.isNaN(parsedVisitedAt.getTime())
   ) {
     throw new Error(
-      "NieprawidĹowa data wizyty."
+      "Nieprawidłowa data wizyty."
     );
   }
 
@@ -192,7 +192,7 @@ export async function addPlaceVisit({
     Date.now() + 5 * 60 * 1000
   ) {
     throw new Error(
-      "Data wizyty nie moĹźe byÄ z przyszĹoĹci."
+      "Data wizyty nie moze byc z przyszlosci."
     );
   }
 
@@ -347,7 +347,7 @@ export async function updateOwnVisit(
 
   if (!user) {
     throw new Error(
-      "Musisz siÄ zalogowaÄ."
+      "Musisz się zalogować."
     );
   }
 
@@ -381,7 +381,7 @@ export async function updateOwnVisit(
       Number.isNaN(parsedDate.getTime())
     ) {
       throw new Error(
-        "NieprawidĹowa data wizyty."
+        "Nieprawidłowa data wizyty."
       );
     }
 
@@ -390,7 +390,7 @@ export async function updateOwnVisit(
       Date.now() + 5 * 60 * 1000
     ) {
       throw new Error(
-        "Data wizyty nie moĹźe byÄ z przyszĹoĹci."
+        "Data wizyty nie moze byc z przyszlosci."
       );
     }
 
@@ -434,7 +434,7 @@ export async function deleteOwnVisit(
 
   if (!user) {
     throw new Error(
-      "Musisz siÄ zalogowaÄ."
+      "Musisz się zalogować."
     );
   }
 
@@ -461,7 +461,7 @@ export function formatVisitDate(
   if (
     Number.isNaN(date.getTime())
   ) {
-    return "NieprawidĹowa data";
+    return "Nieprawidłowa data";
   }
 
   return date.toLocaleString(
