@@ -528,7 +528,6 @@ function PlaceFormFields({
           name="description"
           defaultValue={place.description}
           placeholder="Opisz miejsce, dostęp do wody, najważniejsze zalety i ewentualne utrudnienia."
-          required
           maxLength={3000}
           rows={7}
         />
