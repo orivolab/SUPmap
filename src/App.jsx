@@ -1458,28 +1458,47 @@ async function initializeApp() {
     );
   }
 
-  async function handleNewPlaceImageChange(
-  file
-) {
+  async function handleNewPlaceImageChange(file) {
   if (!file) {
+    if (selectedImage?.previewUrl) {
+      URL.revokeObjectURL(
+        selectedImage.previewUrl
+      );
+    }
+
     setSelectedImage(null);
     return;
   }
 
   try {
+    if (selectedImage?.previewUrl) {
+      URL.revokeObjectURL(
+        selectedImage.previewUrl
+      );
+    }
+
     const image =
       await prepareImageFile(file);
 
-    image.previewUrl =
-      URL.createObjectURL(image);
+    const previewUrl =
+      URL.createObjectURL(file);
 
-    setSelectedImage(image);
+    setSelectedImage({
+      ...image,
+      previewUrl,
+    });
+
     setFormMessage("");
   } catch (error) {
+    console.error(
+      "Błąd przygotowania zdjęcia:",
+      error
+    );
+
     setSelectedImage(null);
 
     setFormMessage(
-      error.message
+      `Błąd zdjęcia: ${error.message}`
     );
   }
 }
