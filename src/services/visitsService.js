@@ -213,10 +213,38 @@ export async function addPlaceVisit({
     .single();
 
   if (error) {
-    throw error;
-  }
+  throw error;
+}
 
-  return data;
+if (imageUrls.length > 0) {
+  const photosToModerate = imageUrls.map(
+    (imageUrl) => ({
+      place_id: placeId,
+      user_id: user.id,
+      image_url: imageUrl,
+      photo_category: null,
+      taken_at:
+        parsedVisitedAt.toISOString(),
+      status: "pending",
+    })
+  );
+
+  const { error: photosError } =
+    await supabase
+      .from("place_photos")
+      .insert(photosToModerate);
+
+  if (photosError) {
+    console.error(
+      "Błąd dodawania zdjęć z wizyty do moderacji:",
+      photosError
+    );
+
+    throw photosError;
+  }
+}
+
+return data;
 }
 
 export async function getPlaceVisitStats(
@@ -415,10 +443,40 @@ export async function updateOwnVisit(
     .single();
 
   if (error) {
-    throw error;
-  }
+  throw error;
+}
 
-  return data;
+if (imageUrls.length > 0) {
+  const photosToModerate = imageUrls.map(
+    (imageUrl) => ({
+      place_id: placeId,
+      user_id: user.id,
+      image_url: imageUrl,
+      photo_category: null,
+      taken_at:
+        parsedVisitedAt.toISOString(),
+      status: "pending",
+    })
+  );
+
+  const { error: photosError } =
+    await supabase
+      .from("place_photos")
+      .insert(photosToModerate);
+
+  if (photosError) {
+    console.error(
+      "Błąd dodawania zdjęć z wizyty do moderacji:",
+      photosError
+    );
+
+    throw new Error(
+      "Wizyta została zapisana, ale nie udało się wysłać zdjęć do zatwierdzenia."
+    );
+  }
+}
+
+return data;
 }
 
 export async function deleteOwnVisit(

@@ -253,6 +253,11 @@ function PlaceDetailsPage({
   ] = useState("overview");
 
   const [
+  openedPhoto,
+  setOpenedPhoto,
+] = useState(null);
+
+  const [
     reviews,
     setReviews,
   ] = useState([]);
@@ -2485,7 +2490,7 @@ clearAllSelectedPhotos();
               style={{
                 display: "grid",
                 gridTemplateColumns:
-                  "repeat(auto-fit, minmax(240px, 1fr))",
+  "repeat(auto-fill, minmax(210px, 260px))",
                 gap: "18px",
               }}
             >
@@ -2505,16 +2510,31 @@ clearAllSelectedPhotos();
                       overflow: "hidden",
                     }}
                   >
-                    <img
-                      src={photo.image_url}
-                      alt={`Zdjęcie miejsca ${place.name}`}
-                      style={{
-                        width: "100%",
-                        height: "240px",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                    />
+                    <button
+  type="button"
+  onClick={() =>
+    setOpenedPhoto(photo)
+  }
+  style={{
+    width: "100%",
+    padding: 0,
+    border: "none",
+    background: "transparent",
+    cursor: "zoom-in",
+    display: "block",
+  }}
+>
+  <img
+    src={photo.image_url}
+    alt={`Zdjęcie miejsca ${place.name}`}
+    style={{
+      width: "100%",
+      height: "190px",
+      objectFit: "cover",
+      display: "block",
+    }}
+  />
+</button>
 
                     <div
                       style={{
@@ -3052,6 +3072,61 @@ clearAllSelectedPhotos();
     onSave={handlePhotoCropSave}
   />
       )}
+
+{openedPhoto && (
+  <div
+    onClick={() => setOpenedPhoto(null)}
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 9999,
+      background: "rgba(0, 0, 0, 0.88)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "30px",
+      boxSizing: "border-box",
+      cursor: "zoom-out",
+    }}
+  >
+    <button
+      type="button"
+      onClick={() => setOpenedPhoto(null)}
+      style={{
+        position: "absolute",
+        top: "20px",
+        right: "24px",
+        border: "none",
+        background: "rgba(255,255,255,0.15)",
+        color: "white",
+        width: "44px",
+        height: "44px",
+        borderRadius: "50%",
+        fontSize: "24px",
+        cursor: "pointer",
+      }}
+    >
+      ✕
+    </button>
+
+    <img
+      src={openedPhoto.image_url}
+      alt={`Zdjęcie miejsca ${place.name}`}
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+      style={{
+        maxWidth: "95vw",
+        maxHeight: "90vh",
+        width: "auto",
+        height: "auto",
+        objectFit: "contain",
+        borderRadius: "12px",
+        cursor: "default",
+      }}
+    />
+  </div>
+)}
     </div>
   );
 }
