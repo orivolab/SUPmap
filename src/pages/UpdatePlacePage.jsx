@@ -199,12 +199,12 @@ function getCurrentCategoryValue(
     ],
 
     access: [
-      place.public_transport,
-      place.stroller_access,
-      place.limited_mobility_access,
-      place.access_road_type,
-      place.sup_carry_distance,
-    ],
+  place.public_transport,
+  place.public_transport_distance,
+  place.stroller_access,
+  place.access_road_type,
+  place.sup_carry_distance,
+],
 
     water: [
       place.shore_depth,

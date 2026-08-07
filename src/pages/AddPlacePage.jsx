@@ -167,7 +167,7 @@ function AddPlacePage({
             marginTop: "38px",
           }}
         >
-          <h2>📷 Zdjęcie główne</h2>
+          <h2>📷 Zdjęcie główne — opcjonalnie</h2>
 
           <label>
             Dodaj zdjęcie miejsca

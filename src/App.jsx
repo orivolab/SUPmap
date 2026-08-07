@@ -663,48 +663,36 @@ campsite_dogs: getBoolean(
       "accommodation_dogs"
     ),
 
-    // Dojazd
-    bicycle_racks: getBoolean(
-      formData,
-      "bicycle_racks"
-    ),
+   // Dojazd
+bicycle_racks: getBoolean(
+  formData,
+  "bicycle_racks"
+),
 
-    public_transport: getText(
-      formData,
-      "public_transport"
-    ),
+public_transport: getText(
+  formData,
+  "public_transport"
+),
 
-    stroller_access: getText(
-      formData,
-      "stroller_access"
-    ),
+public_transport_distance: getText(
+  formData,
+  "public_transport_distance"
+),
 
-    limited_mobility_access:
-      getText(
-        formData,
-        "limited_mobility_access"
-      ),
+stroller_access: getText(
+  formData,
+  "stroller_access"
+),
 
-    parking_to_water_distance:
-      getText(
-        formData,
-        "parking_to_water_distance"
-      ),
+access_road_type: getText(
+  formData,
+  "access_road_type"
+),
 
-    access_road_type: getText(
-      formData,
-      "access_road_type"
-    ),
-
-    sup_carry_distance: getText(
-      formData,
-      "sup_carry_distance"
-    ),
-
-    stairs_on_route: getBoolean(
-      formData,
-      "stairs_on_route"
-    ),
+stairs_on_route: getBoolean(
+  formData,
+  "stairs_on_route"
+),
 
     // Woda i brzeg
     shore_depth: getText(
@@ -1523,15 +1511,6 @@ async function initializeApp() {
     "Najpierw wybierz lokalizację na mapie."
   );
 
-  return;
-}
-
-    if (!selectedImage) {
-  setFormMessage("");
-
-  window.alert(
-    "Dodaj zdjęcie miejsca."
-  );
 
   return;
 }
@@ -1549,24 +1528,29 @@ async function initializeApp() {
     );
 
     try {
-      const upload =
-        await uploadUserImage(
-          selectedImage,
-          "place-submissions"
-        );
+      let imageUrl = null;
+
+if (selectedImage) {
+  const upload =
+    await uploadUserImage(
+      selectedImage,
+      "place-submissions"
+    );
+
+  imageUrl = upload.imageUrl;
+}
 
       setFormMessage(
         "Zapisywanie zgłoszenia..."
       );
 
-      const payload =
-        buildPlacePayload({
-          formData,
-          position:
-            newPlacePosition,
-          imageUrl:
-            upload.imageUrl,
-        });
+     const payload =
+  buildPlacePayload({
+    formData,
+    position:
+      newPlacePosition,
+    imageUrl,
+  });
 
       await submitPlace(payload);
 

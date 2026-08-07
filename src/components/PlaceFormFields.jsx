@@ -80,7 +80,19 @@ function TextField({
         fontWeight: 700,
       }}
     >
-      {label}
+      <span>
+  {label}
+  {required && (
+    <span
+      style={{
+        color: "#d64545",
+        marginLeft: "4px",
+      }}
+    >
+      *
+    </span>
+  )}
+</span>
 
       <input
         type={type}
@@ -473,8 +485,16 @@ function PlaceFormFields({
               fontWeight: 700,
             }}
           >
-            Dokładna pinezka wejścia do wody
-          </span>
+           Dokładna pinezka wejścia do wody
+<span
+  style={{
+    color: "#d64545",
+    marginLeft: "4px",
+  }}
+>
+  *
+</span>
+</span>
 
           <button
             type="button"
@@ -509,7 +529,6 @@ function PlaceFormFields({
           defaultValue={place.description}
           placeholder="Opisz miejsce, dostęp do wody, najważniejsze zalety i ewentualne utrudnienia."
           required
-          minLength={10}
           maxLength={3000}
           rows={7}
         />
@@ -1237,6 +1256,10 @@ function PlaceFormFields({
               label: "Dużo cienia",
             },
             {
+              value: "Średnio cienia",
+              label: "Średnio cienia",
+            },
+            {
               value: "Brak cienia",
               label: "Brak cienia",
             },
@@ -1503,91 +1526,70 @@ function PlaceFormFields({
       </FieldSection>
 
       <FieldSection
-        title="🛣️ Dojazd i dostępność"
-        description="Praktyczne informacje dotyczące dojazdu, dojścia i przenoszenia deski."
-      >
-        <Grid>
-          <TextField
-            label="Dojazd komunikacją publiczną"
-            name="public_transport"
-            defaultValue={
-              place.public_transport
-            }
-            placeholder="Np. autobus 812, przystanek 600 m od plaży"
-            maxLength={800}
-          />
+  title="🛣️ Dojazd i dostępność"
+  description="Praktyczne informacje dotyczące dojazdu, dojścia i przenoszenia deski."
+>
+  <Grid>
+    <TextField
+      label="Dojazd komunikacją publiczną"
+      name="public_transport"
+      defaultValue={
+        place.public_transport
+      }
+      placeholder="Np. autobus 812, najbliższy przystanek Stradomia Wierzchnia"
+      maxLength={800}
+    />
 
-          <TextField
-            label="Dostęp dla wózków"
-            name="stroller_access"
-            defaultValue={
-              place.stroller_access
-            }
-            placeholder="Np. dobry, częściowy, utrudniony przez piasek"
-            maxLength={600}
-          />
+    <TextField
+      label="Odległość od przystanku do wody"
+      name="public_transport_distance"
+      defaultValue={
+        place.public_transport_distance
+      }
+      placeholder="Np. 600 m, około 8 minut pieszo"
+      maxLength={300}
+    />
 
-          <TextField
-            label="Dostęp dla osób z ograniczoną mobilnością"
-            name="limited_mobility_access"
-            defaultValue={
-              place.limited_mobility_access
-            }
-            placeholder="Np. podjazd do plaży, brak schodów"
-            maxLength={800}
-          />
+    <TextField
+      label="Dostęp dla wózków"
+      name="stroller_access"
+      defaultValue={
+        place.stroller_access
+      }
+      placeholder="Np. dobry, częściowy, utrudniony przez piasek"
+      maxLength={600}
+    />
 
-          <TextField
-            label="Rodzaj drogi dojazdowej"
-            name="access_road_type"
-            defaultValue={
-              place.access_road_type
-            }
-            placeholder="Np. asfaltowa, szutrowa, leśna"
-            maxLength={500}
-          />
+    <TextField
+      label="Rodzaj drogi dojazdowej"
+      name="access_road_type"
+      defaultValue={
+        place.access_road_type
+      }
+      placeholder="Np. asfaltowa, szutrowa, leśna"
+      maxLength={500}
+    />
+  </Grid>
 
-          <TextField
-            label="Odległość od parkingu do wody"
-            name="parking_to_water_distance"
-            defaultValue={
-              place.parking_to_water_distance
-            }
-            placeholder="Np. 50 m, około 3 minuty"
-            maxLength={300}
-          />
+  <Grid minimumWidth={210}>
+    <CheckboxField
+      label="Stojaki rowerowe"
+      name="bicycle_racks"
+      icon="🚲"
+      defaultChecked={
+        place.bicycle_racks
+      }
+    />
 
-          <TextField
-            label="Jak daleko trzeba przenosić SUP?"
-            name="sup_carry_distance"
-            defaultValue={
-              place.sup_carry_distance
-            }
-            placeholder="Np. bardzo blisko, około 300 m, długie dojście"
-            maxLength={500}
-          />
-        </Grid>
-
-        <Grid minimumWidth={210}>
-          <CheckboxField
-            label="Stojaki rowerowe"
-            name="bicycle_racks"
-            icon="🚲"
-            defaultChecked={
-              place.bicycle_racks
-            }
-          />
-
-          <CheckboxField
-            label="Schody po drodze"
-            name="stairs_on_route"
-            icon="🪜"
-            defaultChecked={
-              place.stairs_on_route
-            }
-          />
-        </Grid>
-      </FieldSection>
+    <CheckboxField
+      label="Schody po drodze"
+      name="stairs_on_route"
+      defaultChecked={
+        place.stairs_on_route
+      }
+    />
+  </Grid>
+</FieldSection>
 
       <FieldSection
         title="🌊 Charakter wody i brzegu"

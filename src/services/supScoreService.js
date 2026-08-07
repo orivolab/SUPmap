@@ -208,12 +208,12 @@ function getWaterEntryScore(place) {
   }
 
   if (
-    normalizeText(
-      place.parking_to_water_distance
-    ).includes("blisko")
-  ) {
-    score += 5;
-  }
+  normalizeText(
+    place.parking_distance
+  ).includes("blisko")
+) {
+  score += 5;
+}
 
   return clamp(score);
 }
@@ -341,8 +341,7 @@ function getParkingScore(place) {
 
   const distance =
     normalizeText(
-      place.parking_distance ||
-        place.parking_to_water_distance
+      place.parking_distance
     );
 
   if (

@@ -515,8 +515,7 @@ function PlaceAmenities({ place }) {
             icon="📏"
             label="Odległość od wody"
             value={
-              place.parking_distance ||
-              place.parking_to_water_distance
+              place.parking_distance
             }
           />
 
@@ -1079,21 +1078,20 @@ function PlaceAmenities({ place }) {
             label="Komunikacja publiczna"
             value={place.public_transport}
           />
-
+<ValueCard
+  icon="🚶"
+  label="Odległość od przystanku"
+  value={
+    place.public_transport_distance
+  }
+/>
           <ValueCard
             icon="👶"
             label="Dostęp dla wózków"
             value={place.stroller_access}
           />
 
-          <ValueCard
-            icon="♿"
-            label="Ograniczona mobilność"
-            value={
-              place.limited_mobility_access
-            }
-          />
-
+          
           <ValueCard
             icon="🛣️"
             label="Droga dojazdowa"
@@ -1107,7 +1105,6 @@ function PlaceAmenities({ place }) {
           />
 
           <BooleanCard
-            icon="🪜"
             label="Schody po drodze"
             value={place.stairs_on_route}
           />
