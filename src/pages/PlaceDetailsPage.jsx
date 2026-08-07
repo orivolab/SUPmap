@@ -27,7 +27,6 @@ import {
   getApprovedReviews,
   reportReview,
   sortReviews,
-  submitReview,
   toggleReviewHelpful,
 } from "../services/reviewsService";
 
@@ -298,11 +297,6 @@ function PlaceDetailsPage({
     favorite,
     setFavorite,
   ] = useState(false);
-
-  const [
-    reviewRating,
-    setReviewRating,
-  ] = useState(5);
 
   const [
     reviewSortMode,
@@ -794,61 +788,6 @@ function PlaceDetailsPage({
       );
     } finally {
       setSubmittingVerification(false);
-    }
-  }
-
-  async function handleSubmitReview(
-    event
-  ) {
-    event.preventDefault();
-
-    if (!user) {
-      setReviewMessage(
-        "Zaloguj się, aby dodać opinię."
-      );
-
-      onOpenAuth?.();
-      return;
-    }
-
-    const form =
-      event.currentTarget;
-
-    const formData =
-      new FormData(form);
-
-    setReviewMessage(
-      "Wysyłanie opinii..."
-    );
-
-    try {
-      await submitReview({
-        placeId: place.id,
-
-        author:
-          formData.get(
-            "author"
-          ),
-
-        rating:
-          reviewRating,
-
-        comment:
-          formData.get(
-            "comment"
-          ),
-      });
-
-      form.reset();
-      setReviewRating(5);
-
-      setReviewMessage(
-        "Opinia została wysłana i czeka na zatwierdzenie przez administratora."
-      );
-    } catch (error) {
-      setReviewMessage(
-        `Błąd: ${error.message}`
-      );
     }
   }
 
@@ -1976,79 +1915,24 @@ clearAllSelectedPhotos();
               </select>
             </label>
           </div>
-
-          {user ? (
-            <form
-              className="addPlaceForm"
-              onSubmit={handleSubmitReview}
-              style={{
-                marginTop: "26px",
-                marginBottom: "34px",
-              }}
-            >
-              <h3>Dodaj opinię</h3>
-
-              <label>
-                Twoje imię lub nazwa
-
-                <input
-                  type="text"
-                  name="author"
-                  defaultValue={
-                    user.user_metadata
-                      ?.username || ""
-                  }
-                  placeholder="Np. Emilia"
-                  maxLength="60"
-                  required
-                />
-              </label>
-
-              <label>
-                Ocena
-
-                <StarRating
-                  value={reviewRating}
-                  onChange={setReviewRating}
-                />
-              </label>
-
-              <label>
-                Treść opinii
-
-                <textarea
-                  name="comment"
-                  rows="5"
-                  placeholder="Opisz swoje doświadczenia z tym miejscem"
-                  minLength="5"
-                  maxLength="1000"
-                  required
-                />
-              </label>
-
-              <button
-                type="submit"
-                className="addPlaceButton"
-              >
-                Wyślij opinię
-              </button>
-            </form>
-          ) : (
-            <div className="emptyPhotos">
-              <p>
-                Zaloguj się, aby dodać
-                opinię.
-              </p>
-
-              <button
-                type="button"
-                className="adminButton"
-                onClick={onOpenAuth}
-              >
-                Zaloguj się
-              </button>
-            </div>
-          )}
+          <div
+  className="emptyPhotos"
+  style={{
+    marginTop: "26px",
+    marginBottom: "34px",
+  }}
+>
+  <p
+    style={{
+      margin: 0,
+      lineHeight: 1.6,
+    }}
+  >
+    ⭐ Chcesz dodać opinię?
+    Zapisz swoją wizytę przyciskiem
+    <strong> „Byłam tutaj”</strong>.
+  </p>
+</div>
 
           {reviewMessage && (
             <p className="formMessage">
@@ -3171,5 +3055,4 @@ clearAllSelectedPhotos();
     </div>
   );
 }
-
 export default PlaceDetailsPage;

@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 
 import ImageCropModal from "./ImageCropModal";
 import DateTimePicker from "./DateTimePicker";
+import StarRating from "./StarRating";
+
+import {
+  submitReview,
+} from "../services/reviewsService";
 
 import {
   addPlaceVisit,
@@ -36,6 +41,16 @@ function VisitModal({
   const [visitedAt, setVisitedAt] = useState(
     getCurrentLocalDateTime()
   );
+
+  const [
+  reviewRating,
+  setReviewRating,
+] = useState(5);
+
+const [
+  publicReview,
+  setPublicReview,
+] = useState("");
 
   const [privateNote, setPrivateNote] =
     useState("");
@@ -423,7 +438,23 @@ function VisitModal({
             selectedImage.file
         ),
       });
+const cleanPublicReview =
+  publicReview.trim();
 
+if (cleanPublicReview) {
+  await submitReview({
+    placeId: place.id,
+
+    author:
+      user.user_metadata?.username ||
+      user.email ||
+      "Użytkownik",
+
+    rating: reviewRating,
+
+    comment: cleanPublicReview,
+  });
+}
       form.reset();
 
       setVisitedAt(
@@ -432,9 +463,13 @@ function VisitModal({
 
       setPrivateNote("");
       clearSelectedImages();
+      setPublicReview("");
+setReviewRating(5);
 
       setMessage(
-        "Wizyta została zapisana. Miejsce jest już na Twojej liście odwiedzonych."
+       cleanPublicReview
+  ? "Wizyta została zapisana, a opinia została wysłana do zatwierdzenia."
+  : "Wizyta została zapisana. Miejsce jest już na Twojej liście odwiedzonych."
       );
 
       await loadVisits();
@@ -766,6 +801,97 @@ function VisitModal({
                 dla innych użytkowników.
               </small>
             </label>
+
+<section
+  style={{
+    display: "grid",
+    gap: "16px",
+    padding: "18px",
+    borderRadius: "16px",
+    background: "#f7faf8",
+    border: "1px solid #dfe7e3",
+  }}
+>
+  <div>
+    <h3
+      style={{
+        margin: "0 0 8px",
+        fontSize: "20px",
+      }}
+    >
+      ⭐ Opinia o miejscu
+    </h3>
+
+    <p
+      style={{
+        margin: 0,
+        color: "#5c6c66",
+        lineHeight: 1.5,
+      }}
+    >
+      Opcjonalnie możesz od razu
+      wystawić ocenę i publiczną opinię.
+    </p>
+  </div>
+
+  <label
+    style={{
+      display: "grid",
+      gap: "9px",
+      fontSize: "17px",
+      fontWeight: 700,
+    }}
+  >
+    Ocena
+
+    <StarRating
+      value={reviewRating}
+      onChange={setReviewRating}
+    />
+  </label>
+
+  <label
+    style={{
+      display: "grid",
+      gap: "9px",
+      fontSize: "17px",
+      fontWeight: 700,
+    }}
+  >
+    Opinia publiczna — opcjonalnie
+
+    <textarea
+      value={publicReview}
+      onChange={(event) =>
+        setPublicReview(
+          event.target.value
+        )
+      }
+      rows="4"
+      maxLength="1000"
+      placeholder="Np. świetne miejsce na spokojne pływanie, łatwe zejście do wody i dużo miejsca przy brzegu."
+      style={{
+        width: "100%",
+        boxSizing: "border-box",
+        padding: "14px 15px",
+        border: "1px solid #d8e2de",
+        borderRadius: "12px",
+        fontSize: "16px",
+        resize: "vertical",
+      }}
+    />
+
+    <small
+      style={{
+        fontWeight: 400,
+        color: "#5c6c66",
+      }}
+    >
+      Ta treść będzie widoczna publicznie
+      w zakładce Opinie po zatwierdzeniu.
+    </small>
+  </label>
+</section>
 
             <label
               style={{
