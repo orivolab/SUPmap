@@ -1516,21 +1516,25 @@ async function initializeApp() {
       return;
     }
 
-    if (!newPlacePosition) {
-      setFormMessage(
-        "Najpierw wybierz lokalizację na mapie."
-      );
+   if (!newPlacePosition) {
+  setFormMessage("");
 
-      return;
-    }
+  window.alert(
+    "Najpierw wybierz lokalizację na mapie."
+  );
+
+  return;
+}
 
     if (!selectedImage) {
-      setFormMessage(
-        "Dodaj zdjęcie miejsca."
-      );
+  setFormMessage("");
 
-      return;
-    }
+  window.alert(
+    "Dodaj zdjęcie miejsca."
+  );
+
+  return;
+}
 
     const form =
       event.currentTarget;
@@ -1571,9 +1575,11 @@ async function initializeApp() {
       setSelectedImage(null);
       setNewPlacePosition(null);
 
-      setFormMessage(
-        "Zgłoszenie zostało wysłane i czeka na zatwierdzenie."
-      );
+     setFormMessage("");
+
+window.alert(
+  "Zgłoszenie zostało wysłane i czeka na zatwierdzenie."
+);
 
       if (isAdmin) {
         await loadAdminData();
@@ -1583,10 +1589,15 @@ async function initializeApp() {
         "Błąd wysyłania miejsca:",
         error
       );
+setFormMessage("");
 
-      setFormMessage(
-        `Błąd: ${error.message}`
-      );
+window.alert(
+  `Nie udało się wysłać miejsca.\n\n${
+    error.message ||
+    "Spróbuj ponownie za chwilę."
+  }`
+);
+
     } finally {
       setIsSubmittingPlace(false);
     }

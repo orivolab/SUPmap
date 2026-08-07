@@ -15,6 +15,7 @@ import LiveReportModal from "../components/LiveReportModal";
 import OverviewSidebar from "../components/OverviewSidebar";
 import ImageCropModal from "../components/ImageCropModal";
 import DateTimePicker from "../components/DateTimePicker";
+import MessageModal from "../components/MessageModal";
 
 import {
   addFavorite,
@@ -252,6 +253,14 @@ function PlaceDetailsPage({
     setActiveTab,
   ] = useState("overview");
 
+  const [messageModal, setMessageModal] =
+  useState({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+
   const [
   openedPhoto,
   setOpenedPhoto,
@@ -286,6 +295,7 @@ function PlaceDetailsPage({
     statistics,
     setStatistics,
   ] = useState(null);
+  
 
   const [
     verificationInfo,
@@ -1205,18 +1215,38 @@ setPhotoCategory("");
 setPhotoTakenAt("");
 clearAllSelectedPhotos();
 
-      setPhotoMessage(
-        `${sentCount} zdjęć zostało wysłanych i czeka na zatwierdzenie przez administratora.`
-      );
+setPhotoMessage("");
+
+setMessageModal({
+  open: true,
+  type: "success",
+  title:
+    sentCount > 1
+      ? "Zdjęcia wysłane"
+      : "Zdjęcie wysłane",
+  message:
+    sentCount > 1
+      ? `${sentCount} zdjęć zostało wysłanych i czeka na zatwierdzenie przez administratora.`
+      : "Zdjęcie zostało wysłane i czeka na zatwierdzenie przez administratora.",
+});
+
     } catch (error) {
       console.error(
         "Błąd wysyłania zdjęć:",
         error
       );
 
-      setPhotoMessage(
-        `Błąd: ${error.message}`
-      );
+      setPhotoMessage("");
+
+setMessageModal({
+  open: true,
+  type: "error",
+  title: "Nie udało się wysłać zdjęcia",
+  message:
+    error.message ||
+    "Spróbuj ponownie za chwilę.",
+});
+
     } finally {
       setSubmittingPhotos(false);
     }
@@ -3127,6 +3157,18 @@ clearAllSelectedPhotos();
     />
   </div>
 )}
+<MessageModal
+  open={messageModal.open}
+  type={messageModal.type}
+  title={messageModal.title}
+  message={messageModal.message}
+  onClose={() =>
+    setMessageModal((current) => ({
+      ...current,
+      open: false,
+    }))
+  }
+/>
     </div>
   );
 }

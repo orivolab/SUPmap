@@ -466,12 +466,13 @@ if (cleanPublicReview) {
       setPublicReview("");
 setReviewRating(5);
 
-      setMessage(
-       cleanPublicReview
-  ? "Wizyta została zapisana, a opinia została wysłana do zatwierdzenia."
-  : "Wizyta została zapisana. Miejsce jest już na Twojej liście odwiedzonych."
-      );
+     setMessage("");
 
+window.alert(
+  cleanPublicReview
+    ? "Wizyta została zapisana, a opinia została wysłana do zatwierdzenia."
+    : "Wizyta została zapisana."
+);
       await loadVisits();
       await onVisitAdded?.(visit);
     } catch (error) {
@@ -480,7 +481,14 @@ setReviewRating(5);
         error
       );
 
-      setMessage(`Błąd: ${error.message}`);
+    setMessage("");
+
+window.alert(
+  `Nie udało się zapisać wizyty.\n\n${
+    error.message ||
+    "Spróbuj ponownie za chwilę."
+  }`
+);
     } finally {
       setSubmitting(false);
     }
@@ -1305,8 +1313,10 @@ setReviewRating(5);
         onSave={handleCropSave}
       />
     )}
+   
   </>
 );
 }
+
 
 export default VisitModal;

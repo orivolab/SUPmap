@@ -238,11 +238,7 @@ function AddPlacePage({
             : "Wyślij do zatwierdzenia"}
         </button>
 
-        {message && (
-          <p className="formMessage">
-            {message}
-          </p>
-        )}
+      
       </form>
 
       {cropImageUrl && (
