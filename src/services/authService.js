@@ -87,3 +87,39 @@ export function listenToAuthChanges(callback) {
     subscription.unsubscribe();
   };
 }
+  export async function resetPassword(email) {
+  const cleanEmail = String(email).trim().toLowerCase();
+
+  if (!cleanEmail) {
+    throw new Error("Podaj adres e-mail.");
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    cleanEmail,
+    {
+      redirectTo: "https://su-pmapa.vercel.app/",
+    }
+  );
+
+  if (error) {
+    throw error;
+  }
+}
+export async function updatePassword(password) {
+  if (String(password).length < 6) {
+    throw new Error(
+      "Hasło musi mieć co najmniej 6 znaków."
+    );
+  }
+
+  const { data, error } =
+    await supabase.auth.updateUser({
+      password,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}

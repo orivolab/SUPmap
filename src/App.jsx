@@ -20,6 +20,7 @@ import EditPlacePage from "./pages/EditPlacePage";
 import PublicProfilePage from "./pages/PublicProfilePage";
 import SupportWidget from "./components/SupportWidget";
 import UpdatePlacePage from "./pages/UpdatePlacePage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import {
   deleteSupportTicket,
   getSupportTickets,
@@ -80,6 +81,7 @@ const PAGE = {
   EDIT_PLACE: "edit-place",
   EDIT_LOCATION: "edit-location",
   AUTH: "auth",
+  RESET_PASSWORD: "reset-password",
   PROFILE: "profile",
   PUBLIC_PROFILE: "public-profile",
   ADMIN: "admin",
@@ -944,26 +946,31 @@ const pendingCount =
   useEffect(() => {
     initializeApp();
 
-    const stopListening =
-      listenToAuthChanges(
-        (_event, session) => {
-          const currentUser =
-            session?.user ?? null;
+   const stopListening =
+  listenToAuthChanges(
+    (event, session) => {
+      const currentUser =
+        session?.user ?? null;
 
-          setUser(currentUser);
+      setUser(currentUser);
 
-          if (currentUser) {
-            loadUserData(currentUser);
-          } else {
-  setProfile(null);
-  setFavorites([]);
-  setPendingPlaces([]);
-  setPendingReviews([]);
-  setPendingPhotos([]);
-  setPendingPlaceUpdates([]);
-}
-        }
-      );
+      if (event === "PASSWORD_RECOVERY") {
+        setPage(PAGE.RESET_PASSWORD);
+        return;
+      }
+
+      if (currentUser) {
+        loadUserData(currentUser);
+      } else {
+        setProfile(null);
+        setFavorites([]);
+        setPendingPlaces([]);
+        setPendingReviews([]);
+        setPendingPhotos([]);
+        setPendingPlaceUpdates([]);
+      }
+    }
+  );
 
     return () => {
       stopListening?.();
@@ -2117,6 +2124,20 @@ if (
       />
     );
   }
+
+  if (page === PAGE.RESET_PASSWORD) {
+  return renderWithSupport(
+    <ResetPasswordPage
+      onBack={() => {
+        goHome();
+      }}
+      onSuccess={() => {
+        goHome();
+      }}
+    />
+  );
+}
+
 
   if (
     page === PAGE.PROFILE &&

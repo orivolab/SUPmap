@@ -2,11 +2,12 @@ import { useState } from "react";
 import {
   signIn,
   signUp,
+  resetPassword,
 } from "../services/authService";
 
 function AuthModal({ onClose, onSuccess }) {
   const [register, setRegister] = useState(false);
-
+  const [forgotPassword, setForgotPassword] = useState(false);
   const [message, setMessage] = useState("");
 
   async function handleSubmit(event) {
@@ -19,6 +20,18 @@ function AuthModal({ onClose, onSuccess }) {
     const username = form.get("username");
 
     try {
+      setMessage("");
+
+      if (forgotPassword) {
+        await resetPassword(email);
+
+        setMessage(
+          "Wysłaliśmy link do zmiany hasła na podany adres e-mail."
+        );
+
+        return;
+      }
+
       if (register) {
         await signUp({
           email,
@@ -43,6 +56,24 @@ function AuthModal({ onClose, onSuccess }) {
     }
   }
 
+  function showLogin() {
+    setRegister(false);
+    setForgotPassword(false);
+    setMessage("");
+  }
+
+  function showRegister() {
+    setRegister(true);
+    setForgotPassword(false);
+    setMessage("");
+  }
+
+  function showForgotPassword() {
+    setRegister(false);
+    setForgotPassword(true);
+    setMessage("");
+  }
+
   return (
     <div className="placeDetails">
       <button
@@ -53,7 +84,9 @@ function AuthModal({ onClose, onSuccess }) {
       </button>
 
       <h1>
-        {register
+        {forgotPassword
+          ? "Zresetuj hasło"
+          : register
           ? "Załóż konto"
           : "Logowanie"}
       </h1>
@@ -83,36 +116,64 @@ function AuthModal({ onClose, onSuccess }) {
           />
         </label>
 
-        <label>
-          Hasło
+        {!forgotPassword && (
+          <label>
+            Hasło
 
-          <input
-            type="password"
-            name="password"
-            required
-          />
-        </label>
+            <input
+              type="password"
+              name="password"
+              required
+            />
+          </label>
+        )}
 
         <button
           className="addPlaceButton"
           type="submit"
         >
-          {register
+          {forgotPassword
+            ? "Wyślij link do zmiany hasła"
+            : register
             ? "Utwórz konto"
             : "Zaloguj"}
         </button>
 
-        <button
-          type="button"
-          className="adminButton"
-          onClick={() =>
-            setRegister(!register)
-          }
-        >
-          {register
-            ? "Mam już konto"
-            : "Załóż konto"}
-        </button>
+        {forgotPassword ? (
+          <button
+            type="button"
+            className="adminButton"
+            onClick={showLogin}
+          >
+            Wróć do logowania
+          </button>
+        ) : register ? (
+          <button
+            type="button"
+            className="adminButton"
+            onClick={showLogin}
+          >
+            Mam już konto
+          </button>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="adminButton"
+              onClick={showForgotPassword}
+            >
+              Nie pamiętam hasła
+            </button>
+
+            <button
+              type="button"
+              className="adminButton"
+              onClick={showRegister}
+            >
+              Załóż konto
+            </button>
+          </>
+        )}
 
         {message && (
           <p className="formMessage">
