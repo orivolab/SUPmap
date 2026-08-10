@@ -20,6 +20,7 @@ function AdminPage({
   onBack,
   onLogout,
   onEditPlace,
+  onEditPlaceUpdate,
   onApprovePlace,
   onRejectPlace,
   onApproveReview,
@@ -560,17 +561,15 @@ Nowe zgłoszenia pomocy:{" "}
               )}
 
               <div className="adminActions">
-                <button
-                  type="button"
-                  className="approveButton"
-                  onClick={() =>
-                    onApprovePlaceUpdate(
-                      update
-                    )
-                  }
-                >
-                  ✓ Zatwierdź
-                </button>
+    <button
+  type="button"
+  className="approveButton"
+  onClick={() =>
+    onEditPlaceUpdate(update)
+  }
+>
+  ✏️ Wprowadź zmianę
+</button>
 
                 <button
                   type="button"

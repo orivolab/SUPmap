@@ -2,14 +2,47 @@ function FieldSection({
   title,
   description,
   children,
+  highlighted = false,
 }) {
   return (
     <section
       style={{
         marginTop: "38px",
-        paddingTop: "8px",
+        padding: highlighted
+          ? "22px"
+          : "8px 0 0",
+        border: highlighted
+          ? "2px solid #287b63"
+          : "2px solid transparent",
+        borderRadius: highlighted
+          ? "18px"
+          : "0",
+        background: highlighted
+          ? "#eef8f4"
+          : "transparent",
+        boxShadow: highlighted
+          ? "0 0 0 4px rgba(40, 123, 99, 0.08)"
+          : "none",
       }}
     >
+      {highlighted && (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "8px",
+            marginBottom: "8px",
+            padding: "7px 11px",
+            borderRadius: "999px",
+            background: "#287b63",
+            color: "#ffffff",
+            fontSize: "13px",
+            fontWeight: 800,
+          }}
+        >
+          ✏️ Ta sekcja dotyczy zgłoszonej aktualizacji
+        </div>
+      )}
       <h2
         style={{
           marginBottom: "8px",
@@ -444,11 +477,13 @@ function PlaceFormFields({
   place = {},
   position,
   onOpenLocationPicker,
+  highlightedCategory = null,
 }) {
   return (
     <>
       <FieldSection
         title="📍 Podstawowe informacje"
+        highlighted={["basic", "important"].includes(highlightedCategory)}
         description="Najważniejsze dane, które pozwolą znaleźć miejsce i dokładne zejście do wody."
       >
         <Grid>
@@ -571,6 +606,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🚗 Parking"
+        highlighted={highlightedCategory === "parking"}
         description="Rozdzielamy dostępność, rodzaj, cenę i praktyczne ograniczenia parkingu."
       >
         <Grid>
@@ -699,6 +735,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🐶 Psy"
+        highlighted={highlightedCategory === "dogs"}
         description="Określ ogólną zasadę i dopisz szczegóły, gdy dostęp jest tylko częściowy."
       >
         <Grid>
@@ -744,6 +781,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🚻 Toalety"
+        highlighted={highlightedCategory === "toilets"}
         description="Dostępność, opłaty, godziny działania i dostępność dla osób z niepełnosprawnościami."
       >
         <Grid>
@@ -809,6 +847,7 @@ function PlaceFormFields({
       {/* KONIEC CZĘŚCI 1 */}
             <FieldSection
         title="🚿 Prysznice"
+        highlighted={highlightedCategory === "showers"}
         description="Dostępność, opłaty, godziny działania i dodatkowe informacje."
       >
         <Grid>
@@ -864,6 +903,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="👕 Przebieralnie"
+        highlighted={highlightedCategory === "changing_rooms"}
         description="Dostępność przebieralni, opłaty oraz godziny działania."
       >
         <Grid>
@@ -919,6 +959,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🍔 Gastronomia"
+        highlighted={highlightedCategory === "gastronomy"}
         description="Określ dostępność, rodzaj punktów gastronomicznych i sposób płatności."
       >
         <Grid>
@@ -997,6 +1038,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🛟 Ratownik"
+        highlighted={highlightedCategory === "lifeguard"}
         description="Stała lub sezonowa obecność ratownika oraz dodatkowe informacje."
       >
         <Grid>
@@ -1041,6 +1083,7 @@ function PlaceFormFields({
 
       <FieldSection
   title="🏄 Wypożyczalnia"
+        highlighted={highlightedCategory === "rental"}
   description="Dostępność sprzętu, cennik, godziny, możliwość rezerwacji i kontakt."
 >
   <Grid>
@@ -1334,6 +1377,7 @@ function PlaceFormFields({
 
       <FieldSection
   title="⛺ Camping"
+        highlighted={highlightedCategory === "camping"}
   description="Informacje o campingu dla namiotów i kamperów, na miejscu lub w pobliżu."
 >
   <Grid>
@@ -1443,6 +1487,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🏠 Noclegi"
+        highlighted={highlightedCategory === "accommodation"}
         description="Noclegi na miejscu lub w pobliżu."
       >
         <Grid>
@@ -1526,6 +1571,7 @@ function PlaceFormFields({
 
       <FieldSection
   title="🛣️ Dojazd i dostępność"
+        highlighted={highlightedCategory === "access"}
   description="Praktyczne informacje dotyczące dojazdu, dojścia i przenoszenia deski."
 >
   <Grid>
@@ -1592,6 +1638,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🌊 Charakter wody i brzegu"
+        highlighted={highlightedCategory === "water"}
         description="Głębokość, dno, rodzaj plaży i sposób wejścia do wody."
       >
         <Grid>
@@ -1725,6 +1772,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="👶 Dla dzieci"
+        highlighted={highlightedCategory === "children"}
         description="Ocena miejsca pod kątem rodzin z dziećmi."
       >
         <SelectField
@@ -1791,6 +1839,7 @@ function PlaceFormFields({
 
       <FieldSection
         title="🏄 Dla początkujących"
+        highlighted={highlightedCategory === "beginners"}
         description="Ocena miejsca dla osób zaczynających pływanie na SUP-ie."
       >
         <SelectField
@@ -1857,6 +1906,7 @@ function PlaceFormFields({
       {/* KONIEC CZĘŚCI 3 */}
             <FieldSection
         title="🚤 Ruch wodny"
+        highlighted={highlightedCategory === "water_traffic"}
         description="Informacje o motorówkach, strefach ciszy i przeszkodach na wodzie."
       >
         <Grid>

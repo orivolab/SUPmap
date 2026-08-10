@@ -829,6 +829,11 @@ function App() {
   ] = useState(null);
 
   const [
+  editingPlaceUpdate,
+  setEditingPlaceUpdate,
+] = useState(null);
+
+  const [
     newPlacePosition,
     setNewPlacePosition,
   ] = useState(null);
@@ -1594,20 +1599,22 @@ window.alert(
     }
   }
 
-  function openEditPlace(
-    place
-  ) {
-    setEditingPlace(place);
+function openEditPlace( 
+  place,
+  placeUpdate = null
+) {
+  setEditingPlace(place);
+  setEditingPlaceUpdate(placeUpdate);
 
-    setEditPlacePosition({
-      lat: Number(place.lat),
-      lng: Number(place.lng),
-    });
+  setEditPlacePosition({
+    lat: Number(place.lat),
+    lng: Number(place.lng),
+  });
 
-    setEditPlaceImage(null);
-    setEditMessage("");
-    setPage(PAGE.EDIT_PLACE);
-  }
+  setEditPlaceImage(null);
+  setEditMessage("");
+  setPage(PAGE.EDIT_PLACE);
+}
 
   async function handleEditImageChange(
     event
@@ -1701,15 +1708,25 @@ window.alert(
         });
 
       await updatePlace(
-        editingPlace.id,
-        payload
-      );
+  editingPlace.id,
+  payload
+);
 
-      await loadPlaces();
+if (editingPlaceUpdate?.id) {
+  await approvePlaceUpdate(
+    editingPlaceUpdate.id
+  );
+}
+
+await Promise.all([
+  loadPlaces(),
+  loadAdminData(),
+]);
 
       setEditingPlace(null);
       setEditPlaceImage(null);
       setEditPlacePosition(null);
+      setEditingPlaceUpdate(null);
       setEditMessage("");
 
       setAdminMessage(
@@ -1730,6 +1747,34 @@ window.alert(
       setIsSavingPlace(false);
     }
   }
+
+  function openEditPlaceUpdate(update) {
+  const place = places.find(
+    (item) =>
+      String(item.id) ===
+      String(update.place_id)
+  );
+
+  if (!place) {
+    window.alert(
+      "Nie znaleziono miejsca do edycji."
+    );
+    return;
+  }
+
+  setEditingPlace(place);
+  setEditingPlaceUpdate(update);
+
+  setEditPlacePosition({
+    lat: Number(place.lat),
+    lng: Number(place.lng),
+  });
+
+  setEditPlaceImage(null);
+  setEditMessage("");
+  setPage(PAGE.EDIT_PLACE);
+}
+
   async function handleApprovePlace(
     place
   ) {
@@ -2105,6 +2150,7 @@ if (
   ) {
     return renderWithSupport(
       <EditPlacePage
+      placeUpdate={editingPlaceUpdate}
         place={editingPlace}
         position={
           editPlacePosition
@@ -2241,6 +2287,9 @@ if (
         }
         pendingPlaceUpdates={
   pendingPlaceUpdates
+}
+onEditPlaceUpdate={
+  openEditPlaceUpdate
 }
         pendingReviews={
           pendingReviews
