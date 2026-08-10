@@ -2,6 +2,7 @@ import { useState } from "react";
 
 const TABS = {
   PENDING_PLACES: "pending-places",
+  PLACE_UPDATES: "place-updates",
   PENDING_REVIEWS: "pending-reviews",
   PENDING_PHOTOS: "pending-photos",
   SUPPORT_TICKETS: "support-tickets",
@@ -11,6 +12,7 @@ const TABS = {
 function AdminPage({
   approvedPlaces,
   pendingPlaces,
+  pendingPlaceUpdates = [],
   pendingReviews,
   pendingPhotos,
   supportTickets = [],
@@ -24,6 +26,8 @@ function AdminPage({
   onRejectReview,
   onApprovePhoto,
   onRejectPhoto,
+  onApprovePlaceUpdate,
+  onRejectPlaceUpdate,
   onSupportStatusChange,
   onDeleteSupportTicket,
 }) {
@@ -126,6 +130,12 @@ Nowe zgłoszenia pomocy:{" "}
           tab={TABS.PENDING_PLACES}
           label="Nowe miejsca"
           count={pendingPlaces.length}
+        />
+
+        <TabButton
+          tab={TABS.PLACE_UPDATES}
+          label="Aktualizacje miejsc"
+          count={pendingPlaceUpdates.length}
         />
 
         <TabButton
@@ -430,7 +440,157 @@ Nowe zgłoszenia pomocy:{" "}
     )}
   </section>
 )}
+{activeTab === TABS.PLACE_UPDATES && (
+  <section>
+    <h2>Aktualizacje miejsc</h2>
 
+    {pendingPlaceUpdates.length === 0 ? (
+      <div className="emptyPhotos">
+        <p>
+          Nie ma zgłoszonych aktualizacji miejsc.
+        </p>
+      </div>
+    ) : (
+      <div className="adminList">
+        {pendingPlaceUpdates.map((update) => {
+          const proposed =
+            update.proposed_data ?? {};
+
+          return (
+            <article
+              className="adminCard"
+              key={`place-update-${update.id}`}
+            >
+              <h2>
+                ✏️ Propozycja zmiany miejsca
+              </h2>
+
+              <p>
+                📍 ID miejsca:{" "}
+                <strong>
+                  {update.place_id}
+                </strong>
+              </p>
+
+              {proposed.category && (
+                <p>
+                  Kategoria:{" "}
+                  <strong>
+                    {proposed.category}
+                  </strong>
+                </p>
+              )}
+
+              {proposed.current_value && (
+                <div
+                  style={{
+                    marginTop: "16px",
+                    padding: "14px",
+                    borderRadius: "12px",
+                    background: "#f4f7f6",
+                  }}
+                >
+                  <strong>
+                    Obecna informacja:
+                  </strong>
+
+                  <p>
+                    {proposed.current_value}
+                  </p>
+                </div>
+              )}
+
+              {proposed.proposed_value && (
+                <div
+                  style={{
+                    marginTop: "12px",
+                    padding: "14px",
+                    borderRadius: "12px",
+                    background: "#eef8f4",
+                  }}
+                >
+                  <strong>
+                    Proponowana zmiana:
+                  </strong>
+
+                  <p>
+                    {proposed.proposed_value}
+                  </p>
+                </div>
+              )}
+
+              {proposed.source_url && (
+                <p>
+                  🔗 Źródło:{" "}
+                  <a
+                    href={proposed.source_url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Otwórz link
+                  </a>
+                </p>
+              )}
+
+              {update.message && (
+                <p>
+                  💬 Wiadomość:{" "}
+                  {update.message}
+                </p>
+              )}
+
+              {update.created_at && (
+                <p
+                  style={{
+                    color: "#5c6c66",
+                    fontSize: "14px",
+                  }}
+                >
+                  🕒 Wysłano:{" "}
+                  {new Date(
+                    update.created_at
+                  ).toLocaleString(
+                    "pl-PL",
+                    {
+                      dateStyle: "medium",
+                      timeStyle: "short",
+                    }
+                  )}
+                </p>
+              )}
+
+              <div className="adminActions">
+                <button
+                  type="button"
+                  className="approveButton"
+                  onClick={() =>
+                    onApprovePlaceUpdate(
+                      update
+                    )
+                  }
+                >
+                  ✓ Zatwierdź
+                </button>
+
+                <button
+                  type="button"
+                  className="rejectButton"
+                  onClick={() =>
+                    onRejectPlaceUpdate(
+                      update
+                    )
+                  }
+                >
+                  Odrzuć
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </section>
+)}
       {activeTab === TABS.PENDING_PLACES && (
         <section>
           <h2>Zgłoszenia nowych miejsc</h2>

@@ -1864,6 +1864,59 @@ window.alert(
       );
     }
   }
+  async function handleApprovePlaceUpdate(
+  update
+) {
+  setAdminMessage(
+    "Zatwierdzanie aktualizacji miejsca..."
+  );
+
+  try {
+    await approvePlaceUpdate(update.id);
+
+    await loadAdminData();
+
+    setAdminMessage(
+      "Aktualizacja miejsca została zatwierdzona."
+    );
+  } catch (error) {
+    console.error(
+      "Błąd zatwierdzania aktualizacji miejsca:",
+      error
+    );
+
+    setAdminMessage(
+      `Błąd: ${error.message}`
+    );
+  }
+}
+
+async function handleRejectPlaceUpdate(
+  update
+) {
+  setAdminMessage(
+    "Odrzucanie aktualizacji miejsca..."
+  );
+
+  try {
+    await rejectPlaceUpdate(update.id);
+
+    await loadAdminData();
+
+    setAdminMessage(
+      "Aktualizacja miejsca została odrzucona."
+    );
+  } catch (error) {
+    console.error(
+      "Błąd odrzucania aktualizacji miejsca:",
+      error
+    );
+
+    setAdminMessage(
+      `Błąd: ${error.message}`
+    );
+  }
+}
 
   function openPlaceUpdate() {
   if (!user) {
@@ -2186,6 +2239,9 @@ if (
         pendingPlaces={
           pendingPlaces
         }
+        pendingPlaceUpdates={
+  pendingPlaceUpdates
+}
         pendingReviews={
           pendingReviews
         }
@@ -2209,6 +2265,13 @@ if (
         onRejectPlace={
           handleRejectPlace
         }
+        onApprovePlaceUpdate={
+  handleApprovePlaceUpdate
+}
+
+onRejectPlaceUpdate={
+  handleRejectPlaceUpdate
+}
         onApproveReview={
           handleApproveReview
         }
