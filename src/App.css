@@ -63,6 +63,17 @@ img {
   text-decoration: none;
   font-size: 24px;
   font-weight: 800;
+
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: none;
+
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 .logoIcon {
