@@ -20,6 +20,14 @@ import {
 
 import { supabase } from "../lib/supabase";
 
+import {
+  getConversation,
+  getConversationList,
+  getUnreadMessagesCount,
+  markConversationAsRead,
+  sendMessage,
+} from "../services/messagesService";
+
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 
 const PROFILE_TABS = {
@@ -27,6 +35,7 @@ const PROFILE_TABS = {
   POINTS: "points",
   PASSWORD: "password",
   FRIENDS: "friends",
+  MESSAGES: "messages",
   FAVORITES: "favorites",
 };
 
@@ -142,6 +151,15 @@ function ProfileModal({
 
   const [friendsMessage, setFriendsMessage] =
     useState("");
+    
+const [unreadMessagesCount, setUnreadMessagesCount] =
+  useState(0);
+
+const [conversationList, setConversationList] =
+  useState([]);
+
+const [loadingConversationList, setLoadingConversationList] =
+  useState(false);
 
   const [savingProfile, setSavingProfile] =
     useState(false);
@@ -164,6 +182,23 @@ function ProfileModal({
   ] = useState([]);
 
   const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] =
+  useState(null);
+
+const [conversationMessages, setConversationMessages] =
+  useState([]);
+
+const [messageText, setMessageText] =
+  useState("");
+
+const [loadingConversation, setLoadingConversation] =
+  useState(false);
+
+const [sendingMessage, setSendingMessage] =
+  useState(false);
+
+const [messagesMessage, setMessagesMessage] =
+  useState("");
   const [pointsHistory, setPointsHistory] = useState([]);
 const [loadingPointsHistory, setLoadingPointsHistory] =
   useState(true);
@@ -191,9 +226,83 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
 
   useEffect(() => {
   if (user?.id) {
+    loadUnreadMessagesCount();
+  }
+}, [user?.id]);
+
+useEffect(() => {
+  if (user?.id) {
+    loadConversationList();
+  }
+}, [user?.id]);
+
+  useEffect(() => {
+  if (user?.id) {
     loadPointsHistory();
   }
 }, [user?.id]);
+
+useEffect(() => {
+  if (!user?.id) {
+    return undefined;
+  }
+
+  const channel = supabase
+    .channel(`messages-${user.id}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "messages",
+        filter: `receiver_id=eq.${user.id}`,
+      },
+      async (payload) => {
+        const newMessage = payload.new;
+
+        await Promise.all([
+          loadUnreadMessagesCount(),
+          loadConversationList(),
+        ]);
+
+        if (
+          selectedFriend?.id &&
+          newMessage.sender_id ===
+            selectedFriend.id
+        ) {
+          try {
+            const messages =
+              await getConversation(
+                selectedFriend.id
+              );
+
+            setConversationMessages(
+              messages ?? []
+            );
+
+            await markConversationAsRead(
+              selectedFriend.id
+            );
+
+            await Promise.all([
+              loadUnreadMessagesCount(),
+              loadConversationList(),
+            ]);
+          } catch (error) {
+            console.error(
+              "Błąd aktualizacji rozmowy na żywo:",
+              error
+            );
+          }
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, [user?.id, selectedFriend?.id]);
 
   const outgoingUserIds = useMemo(() => {
     return new Set(
@@ -326,6 +435,148 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
     setPointsHistory([]);
   } finally {
     setLoadingPointsHistory(false);
+  }
+}
+
+async function handleOpenConversation(friendship) {
+  const friendId =
+    friendship.profile?.id ||
+    (friendship.sender_id === user.id
+      ? friendship.receiver_id
+      : friendship.sender_id);
+
+  if (!friendId) {
+    return;
+  }
+
+  setSelectedFriend({
+    id: friendId,
+    username:
+      friendship.profile?.username ||
+      "Użytkownik",
+    avatar_url:
+      friendship.profile?.avatar_url ||
+      null,
+  });
+
+  setLoadingConversation(true);
+  setMessagesMessage("");
+
+  try {
+    const messages =
+      await getConversation(friendId);
+
+    setConversationMessages(
+      messages ?? []
+    );
+
+    await markConversationAsRead(
+      friendId
+    );
+    await Promise.all([
+  loadUnreadMessagesCount(),
+  loadConversationList(),
+]);
+  } catch (error) {
+    console.error(
+      "Błąd otwierania rozmowy:",
+      error
+    );
+
+    setConversationMessages([]);
+
+    setMessagesMessage(
+      `Nie udało się otworzyć rozmowy: ${error.message}`
+    );
+  } finally {
+    setLoadingConversation(false);
+  }
+}
+
+async function handleSendMessage(event) {
+  event.preventDefault();
+
+  if (!selectedFriend?.id) {
+    return;
+  }
+
+  const cleanMessage = messageText.trim();
+
+  if (!cleanMessage) {
+    return;
+  }
+
+  setSendingMessage(true);
+  setMessagesMessage("");
+
+  try {
+    await sendMessage(
+      selectedFriend.id,
+      cleanMessage
+    );
+
+    setMessageText("");
+
+    const messages =
+      await getConversation(
+        selectedFriend.id
+      );
+
+    setConversationMessages(
+      messages ?? []
+    );
+    await loadConversationList();
+  } catch (error) {
+    console.error(
+      "Błąd wysyłania wiadomości:",
+      error
+    );
+
+    setMessagesMessage(
+      `Nie udało się wysłać wiadomości: ${error.message}`
+    );
+  } finally {
+    setSendingMessage(false);
+  }
+}
+
+async function loadUnreadMessagesCount() {
+  try {
+    const count =
+      await getUnreadMessagesCount();
+
+    setUnreadMessagesCount(
+      count ?? 0
+    );
+  } catch (error) {
+    console.error(
+      "Błąd pobierania liczby nieprzeczytanych wiadomości:",
+      error
+    );
+
+    setUnreadMessagesCount(0);
+  }
+}
+
+async function loadConversationList() {
+  setLoadingConversationList(true);
+
+  try {
+    const conversations =
+      await getConversationList();
+
+    setConversationList(
+      conversations ?? []
+    );
+  } catch (error) {
+    console.error(
+      "Błąd pobierania listy rozmów:",
+      error
+    );
+
+    setConversationList([]);
+  } finally {
+    setLoadingConversationList(false);
   }
 }
 
@@ -856,6 +1107,15 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
           label="Znajomi"
           count={friends.length}
         />
+
+        <TabButton
+  tab={PROFILE_TABS.MESSAGES}
+  label={
+    unreadMessagesCount > 0
+      ? `Wiadomości (${unreadMessagesCount})`
+      : "Wiadomości"
+  }
+/>
 
         <TabButton
           tab={PROFILE_TABS.FAVORITES}
@@ -1918,18 +2178,38 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className="rejectButton"
-                        onClick={() =>
-                          handleRemoveFriendship(
-                            friendship.id,
-                            "Użytkownik został usunięty ze znajomych."
-                          )
-                        }
-                      >
-                        Usuń ze znajomych
-                      </button>
+                      <div
+  style={{
+    display: "flex",
+    gap: "10px",
+    flexWrap: "wrap",
+  }}
+>
+  <button
+    type="button"
+    className="approveButton"
+    onClick={() =>
+      handleOpenConversation(
+        friendship
+      )
+    }
+  >
+    💬 Napisz wiadomość
+  </button>
+
+  <button
+    type="button"
+    className="rejectButton"
+    onClick={() =>
+      handleRemoveFriendship(
+        friendship.id,
+        "Użytkownik został usunięty ze znajomych."
+      )
+    }
+  >
+    Usuń ze znajomych
+  </button>
+</div>
                     </article>
                   );
                 })}
@@ -2024,6 +2304,232 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
         </section>
       )}
 
+{activeTab === PROFILE_TABS.MESSAGES && (
+  <section>
+    <h2
+      style={{
+        fontSize: "26px",
+        marginTop: 0,
+      }}
+    >
+      💬 Wiadomości
+    </h2>
+
+    {loadingConversationList ? (
+      <div className="emptyPhotos">
+        <p>Ładowanie rozmów...</p>
+      </div>
+    ) : conversationList.length === 0 ? (
+      <div className="emptyPhotos">
+        <p>
+          Nie masz jeszcze żadnych rozmów.
+        </p>
+      </div>
+    ) : (
+      <div className="adminList">
+        {conversationList.map(
+          (conversation) => {
+            const friend =
+              friends.find(
+                (friendship) => {
+                  const friendId =
+                    friendship.profile?.id ||
+                    (friendship.sender_id ===
+                    user.id
+                      ? friendship.receiver_id
+                      : friendship.sender_id);
+
+                  return (
+                    friendId ===
+                    conversation.otherUserId
+                  );
+                }
+              );
+
+            const profile =
+              friend?.profile ?? null;
+
+            const lastMessage =
+              conversation.lastMessage;
+
+            const received =
+              lastMessage.receiver_id ===
+              user.id;
+
+            const unread =
+              received &&
+              !lastMessage.is_read;
+
+            const date =
+              lastMessage.created_at
+                ? new Date(
+                    lastMessage.created_at
+                  ).toLocaleString("pl-PL", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "";
+
+            return (
+              <article
+                key={
+                  conversation.otherUserId
+                }
+                className="adminCard"
+                role="button"
+                tabIndex={0}
+                onClick={() => {
+                  if (friend) {
+                    handleOpenConversation(
+                      friend
+                    );
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                  ) {
+                    event.preventDefault();
+
+                    if (friend) {
+                      handleOpenConversation(
+                        friend
+                      );
+                    }
+                  }
+                }}
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  gap: "16px",
+                  cursor: friend
+                    ? "pointer"
+                    : "default",
+                  border: unread
+                    ? "2px solid #287b63"
+                    : undefined,
+                  background: unread
+                    ? "#f2faf7"
+                    : undefined,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "14px",
+                    minWidth: 0,
+                  }}
+                >
+                  <UserAvatar
+                    avatarUrl={
+                      profile?.avatar_url
+                    }
+                    username={
+                      profile?.username ||
+                      "Użytkownik"
+                    }
+                    size={56}
+                  />
+
+                  <div
+                    style={{
+                      minWidth: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <strong
+                        style={{
+                          fontSize: "18px",
+                        }}
+                      >
+                        {profile?.username ||
+                          "Użytkownik"}
+                      </strong>
+
+                      {unread && (
+                        <span
+                          style={{
+                            background:
+                              "#287b63",
+                            color:
+                              "#ffffff",
+                            borderRadius:
+                              "999px",
+                            padding:
+                              "3px 8px",
+                            fontSize:
+                              "12px",
+                            fontWeight:
+                              700,
+                          }}
+                        >
+                          Nowa
+                        </span>
+                      )}
+                    </div>
+
+                    <p
+                      style={{
+                        margin:
+                          "5px 0 0",
+                        color:
+                          "#5c6c66",
+                        overflow:
+                          "hidden",
+                        textOverflow:
+                          "ellipsis",
+                        whiteSpace:
+                          "nowrap",
+                        maxWidth:
+                          "420px",
+                      }}
+                    >
+                      {lastMessage.sender_id ===
+                      user.id
+                        ? "Ty: "
+                        : ""}
+                      {
+                        lastMessage.content
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                {date && (
+                  <span
+                    style={{
+                      fontSize:
+                        "13px",
+                      color:
+                        "#6b7a75",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {date}
+                  </span>
+                )}
+              </article>
+            );
+          }
+        )}
+      </div>
+    )}
+  </section>
+)}
+
       {activeTab === PROFILE_TABS.FAVORITES && (
         <section>
           <h2
@@ -2098,7 +2604,280 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
           )}
         </section>
       )}
+{selectedFriend && (
+  <div
+    style={{
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0, 0, 0, 0.35)",
+      display: "grid",
+      placeItems: "center",
+      padding: "20px",
+      zIndex: 1000,
+    }}
+    onClick={() => {
+      setSelectedFriend(null);
+      setConversationMessages([]);
+      setMessageText("");
+      setMessagesMessage("");
+    }}
+  >
+    <section
+      className="adminCard"
+      style={{
+        width: "min(720px, 100%)",
+        maxHeight: "85vh",
+        display: "grid",
+        gridTemplateRows: "auto minmax(0, 1fr) auto",
+        padding: 0,
+        overflow: "hidden",
+      }}
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "16px",
+          padding: "18px 20px",
+          borderBottom: "1px solid #e1e8e5",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+          }}
+        >
+          <UserAvatar
+            avatarUrl={selectedFriend.avatar_url}
+            username={selectedFriend.username}
+            size={48}
+          />
 
+          <div>
+            <strong
+              style={{
+                display: "block",
+                fontSize: "18px",
+              }}
+            >
+              {selectedFriend.username}
+            </strong>
+
+            <span
+              style={{
+                fontSize: "13px",
+                color: "#6b7a75",
+              }}
+            >
+              Prywatna rozmowa
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedFriend(null);
+            setConversationMessages([]);
+            setMessageText("");
+            setMessagesMessage("");
+          }}
+          style={{
+            border: "none",
+            background: "transparent",
+            fontSize: "24px",
+            cursor: "pointer",
+            lineHeight: 1,
+          }}
+          aria-label="Zamknij rozmowę"
+        >
+          ×
+        </button>
+      </div>
+
+      <div
+        style={{
+          overflowY: "auto",
+          padding: "20px",
+          background: "#f7faf8",
+        }}
+      >
+        {loadingConversation ? (
+          <p>Ładowanie rozmowy...</p>
+        ) : conversationMessages.length === 0 ? (
+          <div
+            style={{
+              textAlign: "center",
+              padding: "40px 20px",
+              color: "#6b7a75",
+            }}
+          >
+            <p
+              style={{
+                margin: 0,
+              }}
+            >
+              Nie macie jeszcze żadnych wiadomości.
+            </p>
+
+            <p
+              style={{
+                margin: "7px 0 0",
+                fontSize: "14px",
+              }}
+            >
+              Napisz pierwszą wiadomość.
+            </p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gap: "12px",
+            }}
+          >
+            {conversationMessages.map(
+              (message) => {
+                const mine =
+                  message.sender_id === user.id;
+
+                const date =
+                  message.created_at
+                    ? new Date(
+                        message.created_at
+                      ).toLocaleString("pl-PL", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : "";
+
+                return (
+                  <div
+                    key={message.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: mine
+                        ? "flex-end"
+                        : "flex-start",
+                    }}
+                  >
+                    <div
+                      style={{
+                        maxWidth: "78%",
+                        padding: "11px 14px",
+                        borderRadius: mine
+                          ? "16px 16px 4px 16px"
+                          : "16px 16px 16px 4px",
+                        background: mine
+                          ? "#287b63"
+                          : "#ffffff",
+                        color: mine
+                          ? "#ffffff"
+                          : "#263630",
+                        border: mine
+                          ? "none"
+                          : "1px solid #dfe7e3",
+                        overflowWrap: "anywhere",
+                      }}
+                    >
+                      <div
+                        style={{
+                          whiteSpace: "pre-wrap",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        {message.content}
+                      </div>
+
+                      {date && (
+                        <div
+                          style={{
+                            marginTop: "5px",
+                            fontSize: "11px",
+                            opacity: 0.75,
+                            textAlign: "right",
+                          }}
+                        >
+                          {date}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
+            )}
+          </div>
+        )}
+
+        {messagesMessage && (
+          <p
+            className="formMessage"
+            style={{
+              marginBottom: 0,
+            }}
+          >
+            {messagesMessage}
+          </p>
+        )}
+      </div>
+
+      <form
+        onSubmit={handleSendMessage}
+        style={{
+          display: "flex",
+          gap: "10px",
+          padding: "16px 20px",
+          borderTop: "1px solid #e1e8e5",
+          background: "#ffffff",
+        }}
+      >
+        <textarea
+          value={messageText}
+          onChange={(event) =>
+            setMessageText(
+              event.target.value
+            )
+          }
+          placeholder="Napisz wiadomość..."
+          maxLength={2000}
+          rows={2}
+          style={{
+            flex: 1,
+            resize: "none",
+            padding: "12px 14px",
+            border: "1px solid #d8e2de",
+            borderRadius: "12px",
+            font: "inherit",
+          }}
+        />
+
+        <button
+          type="submit"
+          className="approveButton"
+          disabled={
+            sendingMessage ||
+            !messageText.trim()
+          }
+          style={{
+            alignSelf: "stretch",
+          }}
+        >
+          {sendingMessage
+            ? "Wysyłanie..."
+            : "Wyślij"}
+        </button>
+      </form>
+    </section>
+  </div>
+)}
       <button
         type="button"
         className="rejectButton"
