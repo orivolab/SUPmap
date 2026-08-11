@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { supabase } from "../lib/supabase";
 
 function normalizePlace(place, statistics = null) {
   if (!place) {
@@ -674,4 +675,21 @@ export function getPlaceMarkerState(
   }
 
   return "default";
+}
+export async function getPlaceById(placeId) {
+  if (!placeId) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("places")
+    .select("*")
+    .eq("id", placeId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ?? null;
 }

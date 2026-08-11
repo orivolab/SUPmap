@@ -10,19 +10,21 @@ function ProfilePage({
   onBack,
   onLogout,
   onOpenPublicProfile,
+  onOpenPlace,
 }) {
   return (
-    <ProfileModal
-      profile={profile}
-      user={user}
-      favorites={favorites}
-      points={points}
-      level={level}
-      initialTab={initialTab}
-      onClose={onBack}
-      onLogout={onLogout}
-      onOpenPublicProfile={onOpenPublicProfile}
-    />
+   <ProfileModal
+  profile={profile}
+  user={user}
+  favorites={favorites}
+  points={points}
+  level={level}
+  initialTab={initialTab}
+  onClose={onBack}
+  onLogout={onLogout}
+  onOpenPublicProfile={onOpenPublicProfile}
+  onOpenPlace={onOpenPlace}
+/>
   );
 }
 

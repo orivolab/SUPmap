@@ -41,6 +41,10 @@ import {
   markNotificationAsRead,
 } from "../services/notificationsService";
 
+import {
+  getPlaceById,
+} from "../services/placesService";
+
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 
 const PROFILE_TABS = {
@@ -142,6 +146,7 @@ function ProfileModal({
   onClose,
   onLogout,
   onOpenPublicProfile,
+  onOpenPlace,
 }) {
   const [activeTab, setActiveTab] = useState(
     initialTab
@@ -2842,56 +2847,74 @@ async function loadNotificationPreferences() {
         ? 0
         : undefined
     }
-    onClick={async () => {
+   onClick={async () => {
+  try {
+    if (!notification.is_read) {
+      await markNotificationAsRead(
+        notification.id
+      );
+    }
+
+    if (
+      notification.type === "new_message" &&
+      notification.actor_id
+    ) {
+      const friendship = friends.find(
+        (item) => {
+          const friendId =
+            item.profile?.id ||
+            (item.sender_id === user.id
+              ? item.receiver_id
+              : item.sender_id);
+
+          return (
+            friendId ===
+            notification.actor_id
+          );
+        }
+      );
+
+      if (friendship) {
+        setActiveTab(
+          PROFILE_TABS.MESSAGES
+        );
+
+        await handleOpenConversation(
+          friendship
+        );
+      }
+    }
+
       if (
-        notification.type !== "new_message" ||
-        !notification.actor_id
-      ) {
-        return;
-      }
+  [
+    "place_approved",
+    "place_rejected",
+    "place_update_approved",
+    "place_update_rejected",
+  ].includes(notification.type) &&
+  notification.place_id &&
+  onOpenPlace
+) {
+  const place = await getPlaceById(
+    notification.place_id
+  );
 
-      try {
-        if (!notification.is_read) {
-          await markNotificationAsRead(
-            notification.id
-          );
-        }
+  if (place) {
+    onOpenPlace(place);
+    return;
+  }
+}
 
-        const friendship = friends.find(
-          (item) => {
-            const friendId =
-              item.profile?.id ||
-              (item.sender_id === user.id
-                ? item.receiver_id
-                : item.sender_id);
-
-            return (
-              friendId ===
-              notification.actor_id
-            );
-          }
-        );
-
-        if (friendship) {
-          setActiveTab(
-            PROFILE_TABS.MESSAGES
-          );
-
-          await handleOpenConversation(
-            friendship
-          );
-        }
-
-        await Promise.all([
-          loadNotifications(),
-          loadUnreadNotificationsCount(),
-        ]);
-      } catch (error) {
-        console.error(
-          "Błąd otwierania powiadomienia:",
-          error
-        );
-      }
+    await Promise.all([
+      loadNotifications(),
+      loadUnreadNotificationsCount(),
+    ]);
+  } catch (error) {
+    console.error(
+      "Błąd otwierania powiadomienia:",
+      error
+    );
+  }
     }}
     style={{
       padding: "16px",

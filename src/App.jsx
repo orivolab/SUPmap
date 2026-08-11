@@ -2408,34 +2408,26 @@ if (page === PAGE.RESET_PASSWORD) {
 
     return renderWithSupport(
       <ProfilePage
-        profile={profile}
-        user={user}
-        favorites={favorites}
-        points={points}
-        level={getUserLevel
-          (
-          points
-        )}
-
-initialTab={profileStartTab}
-
-        onBack={() => {
-          if (
-            selectedPlace &&
-            getPlaceIdFromPath()
-          ) {
-            setPage(PAGE.DETAILS);
-          } else {
-            goHome();
-          }
-        }}
-        onLogout={
-          handleLogout
-        }
-        onOpenPublicProfile={
-          openPublicProfile
-        }
-      />
+  profile={profile}
+  user={user}
+  favorites={favorites}
+  points={points}
+  level={getUserLevel(points)}
+  initialTab={profileStartTab}
+  onBack={() => {
+    if (
+      selectedPlace &&
+      getPlaceIdFromPath()
+    ) {
+      setPage(PAGE.DETAILS);
+    } else {
+      goHome();
+    }
+  }}
+  onLogout={handleLogout}
+  onOpenPublicProfile={openPublicProfile}
+  onOpenPlace={handleSelectPlace}
+/>
     );
   }
 
