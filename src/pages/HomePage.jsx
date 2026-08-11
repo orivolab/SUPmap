@@ -6,6 +6,7 @@ import {
 import Header from "../components/Header";
 import PlaceMap from "../components/PlaceMap";
 import SearchBar from "../components/SearchBar";
+import AppleIcon from "../components/AppleIcon";
 
 const RADIUS_OPTIONS = [
   {
@@ -250,7 +251,16 @@ function NavigationButtons({
           cursor: "pointer",
         }}
       >
-         Mapy
+       <span
+  style={{
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+  }}
+>
+  <AppleIcon />
+  Mapy
+</span>
       </button>
     </div>
   );

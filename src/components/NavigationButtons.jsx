@@ -1,3 +1,5 @@
+import AppleIcon from "./AppleIcon";
+
 function getCoordinates(place) {
   const lat = Number(place?.lat);
   const lng = Number(place?.lng);
@@ -172,7 +174,19 @@ function NavigationButtons({
             cursor: "pointer",
           }}
         >
-           Mapy
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "6px",
+            }}
+          >
+            <AppleIcon
+              size={compact ? 14 : 16}
+            />
+            Mapy
+          </span>
         </button>
       </div>
 
