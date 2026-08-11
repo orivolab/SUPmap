@@ -271,6 +271,7 @@ function HomePage({
   profile,
   isAdmin,
   pendingCount = 0,
+  unreadMessagesCount,
   unreadNotificationsCount,
   places,
   searchText = "",
@@ -283,6 +284,7 @@ function HomePage({
   onOpenAdmin,
   onOpenAuth,
   onOpenProfile,
+  onOpenMessages,
   onOpenNotifications,
   onAddPlace,
   onGoHome,
@@ -415,10 +417,12 @@ function HomePage({
   profile={profile}
   isAdmin={isAdmin}
   pendingCount={pendingCount}
+  unreadMessagesCount={unreadMessagesCount}
   unreadNotificationsCount={unreadNotificationsCount}
   onOpenAdmin={onOpenAdmin}
   onOpenAuth={onOpenAuth}
   onOpenProfile={onOpenProfile}
+  onOpenMessages={onOpenMessages}
   onOpenNotifications={onOpenNotifications}
   onAddPlace={onAddPlace}
   onGoHome={onGoHome}

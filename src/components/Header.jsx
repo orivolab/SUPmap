@@ -3,10 +3,12 @@ function Header({
   profile,
   isAdmin,
   pendingCount,
+  unreadMessagesCount,
   unreadNotificationsCount,
   onOpenAdmin,
   onOpenAuth,
   onOpenProfile,
+  onOpenMessages,
   onOpenNotifications,
   onAddPlace,
   onGoHome,
@@ -45,6 +47,45 @@ function Header({
     >
       👤 {profile?.username || "Mój profil"}
     </button>
+
+<button
+  type="button"
+  className="adminButton"
+  onClick={onOpenMessages}
+  aria-label="Wiadomości"
+  style={{
+    position: "relative",
+    minWidth: "48px",
+  }}
+>
+  💬
+
+  {unreadMessagesCount > 0 && (
+    <span
+      style={{
+        position: "absolute",
+        top: "-7px",
+        right: "-7px",
+        minWidth: "20px",
+        height: "20px",
+        padding: "0 5px",
+        borderRadius: "999px",
+        background: "#287b63",
+        color: "#ffffff",
+        display: "grid",
+        placeItems: "center",
+        fontSize: "12px",
+        fontWeight: 800,
+        border: "2px solid #ffffff",
+        boxSizing: "border-box",
+      }}
+    >
+      {unreadMessagesCount > 99
+        ? "99+"
+        : unreadMessagesCount}
+    </span>
+  )}
+</button>
 
     <button
       type="button"

@@ -76,6 +76,9 @@ import {
   getUnreadNotificationsCount,
 } from "./services/notificationsService";
 
+import {
+  getUnreadMessagesCount,
+} from "./services/messagesService";
 
 const ADMIN_EMAIL = "orivolab@gmail.com";
 
@@ -920,6 +923,11 @@ const [
     setIsSavingPlace,
   ] = useState(false);
 
+  const [
+  unreadMessagesCount,
+  setUnreadMessagesCount,
+] = useState(0);
+
   const isAdmin =
     user?.email?.toLowerCase() ===
     ADMIN_EMAIL;
@@ -1039,6 +1047,28 @@ useEffect(() => {
       );
 
       setUnreadNotificationsCount(0);
+    });
+}, [user?.id]);
+
+useEffect(() => {
+  if (!user?.id) {
+    setUnreadMessagesCount(0);
+    return;
+  }
+
+  getUnreadMessagesCount()
+    .then((count) => {
+      setUnreadMessagesCount(
+        count ?? 0
+      );
+    })
+    .catch((error) => {
+      console.error(
+        "Błąd pobierania liczby wiadomości:",
+        error
+      );
+
+      setUnreadMessagesCount(0);
     });
 }, [user?.id]);
 
@@ -1479,6 +1509,17 @@ function openNotifications() {
   }
 
   setProfileStartTab("notifications");
+  loadUserData(user);
+  setPage(PAGE.PROFILE);
+}
+
+function openMessages() {
+  if (!user) {
+    openAuth(PAGE.PROFILE);
+    return;
+  }
+
+  setProfileStartTab("messages");
   loadUserData(user);
   setPage(PAGE.PROFILE);
 }
@@ -2468,50 +2509,32 @@ onDeleteSupportTicket={
 
   return renderWithSupport(
   <HomePage
-    user={user}
-    profile={profile}
-    isAdmin={isAdmin}
-    pendingCount={
-      pendingCount
-    }
-    unreadNotificationsCount={
-      unreadNotificationsCount
-    }
-    places={visiblePlaces}
-    searchText={searchText}
-    filters={filters}
-    activeFilters={
-      activeFilters
-    }
-    onSearchChange={
-      setSearchText
-    }
-    onClearSearch={() =>
-      setSearchText("")
-    }
-    onToggleFilter={
-      handleToggleFilter
-    }
-    onSelectPlace={
-      handleSelectPlace
-    }
-    onOpenAdmin={
-      openAdmin
-    }
-    onOpenAuth={() =>
-      openAuth(PAGE.HOME)
-    }
-    onOpenProfile={
-      openProfile
-    }
-    onOpenNotifications={
-      openNotifications
-    }
-    onAddPlace={
-      openAddPlace
-    }
-    onGoHome={goHome}
-  />
+  user={user}
+  profile={profile}
+  isAdmin={isAdmin}
+  pendingCount={pendingCount}
+  unreadMessagesCount={unreadMessagesCount}
+  unreadNotificationsCount={unreadNotificationsCount}
+  places={visiblePlaces}
+  searchText={searchText}
+  filters={filters}
+  activeFilters={activeFilters}
+  onSearchChange={setSearchText}
+  onClearSearch={() =>
+    setSearchText("")
+  }
+  onToggleFilter={handleToggleFilter}
+  onSelectPlace={handleSelectPlace}
+  onOpenAdmin={openAdmin}
+  onOpenAuth={() =>
+    openAuth(PAGE.HOME)
+  }
+  onOpenProfile={openProfile}
+  onOpenMessages={openMessages}
+  onOpenNotifications={openNotifications}
+  onAddPlace={openAddPlace}
+  onGoHome={goHome}
+/>
 );
 }
 
