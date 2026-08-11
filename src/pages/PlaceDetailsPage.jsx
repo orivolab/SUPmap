@@ -176,14 +176,18 @@ function SectionTabs({
   reportsCount,
 }) {
   const tabs = [
-    {
-      id: "overview",
-      label: "Przegląd",
-    },
-    {
-      id: "reviews",
-      label: `Opinie (${reviewsCount})`,
-    },
+  {
+    id: "overview",
+    label: "Przegląd",
+  },
+  {
+    id: "supscore",
+    label: "SUPscore",
+  },
+  {
+    id: "reviews",
+    label: `Opinie (${reviewsCount})`,
+  },
     {
       id: "photos",
       label: `Zdjęcia (${photosCount})`,
@@ -1648,235 +1652,202 @@ setMessageModal({
           </p>
         </section>
       )}
+<SectionTabs
+  activeTab={activeTab}
+  onChange={setActiveTab}
+  reviewsCount={reviews.length}
+  photosCount={photos.length}
+  reportsCount={allReports.length}
+/>
 
-      <SectionTabs
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        reviewsCount={reviews.length}
-        photosCount={photos.length}
-        reportsCount={
-          allReports.length
-        }
-      />
+{activeTab === "supscore" && (
+  <section>
+    {loadingStatistics ? (
+      <section
+        className="adminCard"
+        style={{
+          padding: "26px",
+        }}
+      >
+        <p>Ładowanie SUPscore i statystyk...</p>
+      </section>
+    ) : (
+      <>
+        <SupScoreCard result={supScore} />
 
-      {activeTab ===
-        "overview" && (
-        <div className="overviewLayout">
-          <OverviewSidebar />
+        <PlaceStatistics
+          statistics={statistics}
+        />
+      </>
+    )}
+  </section>
+)}
 
-          <div className="overviewContent">
-            <section
-              id="overview-score"
-              className="overviewScrollSection"
-            >
-              {loadingStatistics ? (
-                <section
-                  className="adminCard"
-                  style={{
-                    padding: "26px",
-                  }}
-                >
-                  <p>
-                    Ładowanie SUP Score i
-                    statystyk...
-                  </p>
-                </section>
-              ) : (
-                <>
-                  <SupScoreCard
-                    result={supScore}
-                  />
+{activeTab === "overview" && (
+  <div className="overviewLayout">
+    <OverviewSidebar />
 
-                  <PlaceStatistics
-                    statistics={
-                      statistics
-                    }
-                  />
-                </>
-              )}
-            </section>
+    <div className="overviewContent">
+      <section
+        id="overview-live"
+        className="overviewScrollSection"
+      >
+        <PlaceLiveStatus
+          reports={activeReports}
+          loading={loadingReports}
+          onOpenPublicProfile={
+            onOpenPublicProfile
+          }
+        />
+      </section>
 
-            <section
-              id="overview-live"
-              className="overviewScrollSection"
-            >
-              <PlaceLiveStatus
-                reports={
-                  activeReports
-                }
-                loading={
-                  loadingReports
-                }
-                onOpenPublicProfile={
-                  onOpenPublicProfile
-                }
-              />
-            </section>
+      <section
+        id="overview-weather"
+        className="overviewScrollSection"
+      >
+        <WeatherCard
+          latitude={place.lat}
+          longitude={place.lng}
+        />
+      </section>
 
-            <section
-              id="overview-weather"
-              className="overviewScrollSection"
-            >
-              <WeatherCard
-                latitude={place.lat}
-                longitude={place.lng}
-              />
-            </section>
-
-            <section
-              id="overview-verification"
-              className="overviewScrollSection"
-            >
-              <section
-                className="adminCard"
+      <section
+        id="overview-verification"
+        className="overviewScrollSection"
+      >
+        <section
+          className="adminCard"
+          style={{
+            padding: "26px",
+            marginTop: "32px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <h2
                 style={{
-                  padding: "26px",
-                  marginTop: "32px",
+                  margin: "0 0 8px",
+                  fontSize: "26px",
                 }}
               >
-                <div
+                ✅ Aktualność informacji
+              </h2>
+
+              {loadingVerification ? (
+                <p>
+                  Ładowanie potwierdzeń...
+                </p>
+              ) : verificationInfo.verified ? (
+                <p
                   style={{
-                    display: "flex",
-                    justifyContent:
-                      "space-between",
-                    alignItems:
-                      "flex-start",
-                    gap: "20px",
-                    flexWrap: "wrap",
+                    margin: 0,
+                    lineHeight: 1.6,
                   }}
                 >
-                  <div>
-                    <h2
-                      style={{
-                        margin:
-                          "0 0 8px",
-                        fontSize:
-                          "26px",
-                      }}
-                    >
-                      ✅ Aktualność
-                      informacji
-                    </h2>
-
-                    {loadingVerification ? (
-                      <p>
-                        Ładowanie
-                        potwierdzeń...
-                      </p>
-                    ) : verificationInfo.verified ? (
-                      <p
-                        style={{
-                          margin: 0,
-                          lineHeight:
-                            1.6,
-                        }}
-                      >
-                        <strong>
-                          Zweryfikowane
-                          przez społeczność
-                        </strong>
-                        {" · "}
-                        {
-                          verificationInfo.uniqueRecentCount
-                        }{" "}
-                        unikalnych osób
-                        potwierdziło dane w
-                        ciągu ostatnich 30
-                        dni.
-                      </p>
-                    ) : (
-                      <p
-                        style={{
-                          margin: 0,
-                          lineHeight:
-                            1.6,
-                          color:
-                            "#5c6c66",
-                        }}
-                      >
-                        Aktualność
-                        potwierdziło{" "}
-                        <strong>
-                          {
-                            verificationInfo.uniqueRecentCount
-                          }
-                        </strong>{" "}
-                        unikalnych
-                        użytkowników w ciągu
-                        ostatnich 30 dni.
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    className="approveButton"
-                    disabled={
-                      submittingVerification ||
-                      !verificationInfo.canCurrentUserVerify
-                    }
-                    onClick={
-                      handleVerifyPlace
-                    }
-                  >
-                    {submittingVerification
-                      ? "Zapisywanie..."
-                      : verificationInfo.canCurrentUserVerify
-                        ? "Potwierdzam aktualność"
-                        : user
-                          ? "Ponownie za 3 godziny"
-                          : "Zaloguj się"}
-                  </button>
-                </div>
-
-                {verificationMessage && (
-                  <p className="formMessage">
+                  <strong>
+                    Zweryfikowane przez
+                    społeczność
+                  </strong>
+                  {" · "}
+                  {
+                    verificationInfo.uniqueRecentCount
+                  }{" "}
+                  unikalnych osób potwierdziło
+                  dane w ciągu ostatnich 30 dni.
+                </p>
+              ) : (
+                <p
+                  style={{
+                    margin: 0,
+                    lineHeight: 1.6,
+                    color: "#5c6c66",
+                  }}
+                >
+                  Aktualność potwierdziło{" "}
+                  <strong>
                     {
-                      verificationMessage
+                      verificationInfo.uniqueRecentCount
                     }
-                  </p>
-                )}
-              </section>
-            </section>
+                  </strong>{" "}
+                  unikalnych użytkowników w ciągu
+                  ostatnich 30 dni.
+                </p>
+              )}
+            </div>
 
-            <PlaceAmenities
-              place={place}
-            />
-          
-          <div
-  style={{
-    marginTop: 40,
-    textAlign: "center",
-  }}
->
- 
-  <button
-   onClick={onOpenUpdate}
-    style={{
-      background: "#0f766e",
-      color: "#fff",
-      border: "none",
-      borderRadius: "12px",
-      padding: "14px 22px",
-      fontSize: "16px",
-      cursor: "pointer",
-    }}
-  >
-    ✏️ Zaproponuj aktualizację danych
-  </button>
+            <button
+              type="button"
+              className="approveButton"
+              disabled={
+                submittingVerification ||
+                !verificationInfo.canCurrentUserVerify
+              }
+              onClick={handleVerifyPlace}
+            >
+              {submittingVerification
+                ? "Zapisywanie..."
+                : verificationInfo.canCurrentUserVerify
+                  ? "Potwierdzam aktualność"
+                  : user
+                    ? "Ponownie za 3 godziny"
+                    : "Zaloguj się"}
+            </button>
+          </div>
 
-  <p
-    style={{
-      marginTop: 10,
-      color: "#666",
-    }}
-  >
-    Masz nowsze informacje? Wyślij propozycję zmian. Zostanie ona sprawdzona przez administratora.
-  </p>
-   </div>
-</div>
-        </div>
-      )}
+          {verificationMessage && (
+            <p className="formMessage">
+              {verificationMessage}
+            </p>
+          )}
+        </section>
+      </section>
+
+      <PlaceAmenities place={place} />
+
+      <div
+        style={{
+          marginTop: 40,
+          textAlign: "center",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onOpenUpdate}
+          style={{
+            background: "#0f766e",
+            color: "#fff",
+            border: "none",
+            borderRadius: "12px",
+            padding: "14px 22px",
+            fontSize: "16px",
+            cursor: "pointer",
+          }}
+        >
+          ✏️ Zaproponuj aktualizację danych
+        </button>
+
+        <p
+          style={{
+            marginTop: 10,
+            color: "#666",
+          }}
+        >
+          Masz nowsze informacje? Wyślij
+          propozycję zmian. Zostanie ona
+          sprawdzona przez administratora.
+        </p>
+      </div>
+    </div>
+  </div>
+)}
             {activeTab === "reviews" && (
         <section>
           <div

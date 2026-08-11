@@ -505,6 +505,118 @@ function SupScoreCard({ result }) {
         </div>
       </section>
 
+<section
+  style={{
+    marginTop: "28px",
+    padding: "20px",
+    borderRadius: "16px",
+    background: "#ffffff",
+    border: `1px solid ${appearance.border}`,
+  }}
+>
+  <h3
+    style={{
+      margin: "0 0 14px",
+      fontSize: "21px",
+    }}
+  >
+    🔎 Dlaczego taki wynik?
+  </h3>
+
+  {(() => {
+    const availableCategories =
+      categories.filter(
+        (category) => category.available
+      );
+
+    if (availableCategories.length === 0) {
+      return (
+        <p
+          style={{
+            margin: 0,
+            color: "#5c6c66",
+            lineHeight: 1.6,
+          }}
+        >
+          Brakuje jeszcze wystarczających danych,
+          aby dokładnie wyjaśnić wynik.
+        </p>
+      );
+    }
+
+    const sortedCategories = [
+      ...availableCategories,
+    ].sort(
+      (a, b) =>
+        Number(b.score) - Number(a.score)
+    );
+
+    const strongest =
+      sortedCategories[0];
+
+    const weakest =
+      sortedCategories[
+        sortedCategories.length - 1
+      ];
+
+    const missingCategories =
+      categories.filter(
+        (category) => !category.available
+      );
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gap: "12px",
+          lineHeight: 1.6,
+        }}
+      >
+        <div>
+          ✅ Najmocniejsza kategoria:{" "}
+          <strong>
+            {strongest.icon}{" "}
+            {strongest.label} —{" "}
+            {strongest.score}/100
+          </strong>
+        </div>
+
+        <div>
+          📉 Najniżej oceniona kategoria:{" "}
+          <strong>
+            {weakest.icon}{" "}
+            {weakest.label} —{" "}
+            {weakest.score}/100
+          </strong>
+        </div>
+
+        {missingCategories.length > 0 && (
+          <div>
+            ℹ️ Brak danych dla:{" "}
+            <strong>
+              {missingCategories
+                .map(
+                  (category) =>
+                    category.label
+                )
+                .join(", ")}
+            </strong>
+            . Brak danych nie obniża
+            automatycznie wyniku.
+          </div>
+        )}
+
+        <div>
+          📊 Wynik jest liczony z dostępnych
+          kategorii oraz danych społeczności:
+          opinii, potwierdzeń, aktualizacji i
+          uzupełnionych informacji o miejscu.
+        </div>
+      </div>
+    );
+  })()}
+</section>
+
       <div
         style={{
           marginTop: "26px",
