@@ -45,6 +45,11 @@ import {
   getPlaceById,
 } from "../services/placesService";
 
+import {
+  enablePushNotifications,
+  disablePushNotifications,
+} from "../services/pushService";
+
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 
 const PROFILE_TABS = {
@@ -285,6 +290,15 @@ function ProfileModal({
     notificationsMessage,
     setNotificationsMessage,
   ] = useState("");
+
+  const VAPID_PUBLIC_KEY =
+  import.meta.env.VITE_VAPID_PUBLIC_KEY;
+
+  const [pushMessage, setPushMessage] =
+  useState("");
+
+const [changingPush, setChangingPush] =
+  useState(false);
 
   useEffect(() => {
     setActiveTab(
@@ -3142,6 +3156,142 @@ async function loadNotificationPreferences() {
         >
           Kanały powiadomień
         </h3>
+
+<div
+  className="adminCard"
+  style={{
+    padding: "18px",
+    marginBottom: "22px",
+    background: "#f7faf8",
+  }}
+>
+  <h3
+    style={{
+      marginTop: 0,
+      fontSize: "20px",
+    }}
+  >
+    📱 Powiadomienia na tym urządzeniu
+  </h3>
+
+  <p
+    style={{
+      color: "#5c6c66",
+      marginTop: 0,
+    }}
+  >
+    Włącz, aby SUPmap mogła wyświetlać
+    powiadomienia na tym telefonie lub
+    komputerze.
+  </p>
+
+  <div
+    style={{
+      display: "flex",
+      gap: "10px",
+      flexWrap: "wrap",
+    }}
+  >
+    <button
+      type="button"
+      className="approveButton"
+      disabled={changingPush}
+      onClick={async () => {
+        setChangingPush(true);
+        setPushMessage(
+          "Włączanie powiadomień..."
+        );
+
+        try {
+          if (!VAPID_PUBLIC_KEY) {
+            throw new Error(
+              "Brak publicznego klucza VAPID."
+            );
+          }
+
+          await enablePushNotifications(
+            VAPID_PUBLIC_KEY
+          );
+
+          setPushMessage(
+            "Powiadomienia na tym urządzeniu są włączone."
+          );
+
+          setNotificationPreferences(
+            (current) => ({
+              ...current,
+              push_enabled: true,
+            })
+          );
+        } catch (error) {
+          console.error(
+            "Błąd włączania push:",
+            error
+          );
+
+          setPushMessage(
+            `Nie udało się włączyć powiadomień: ${error.message}`
+          );
+        } finally {
+          setChangingPush(false);
+        }
+      }}
+    >
+      Włącz powiadomienia
+    </button>
+
+    <button
+      type="button"
+      className="rejectButton"
+      disabled={changingPush}
+      onClick={async () => {
+        setChangingPush(true);
+        setPushMessage(
+          "Wyłączanie powiadomień..."
+        );
+
+        try {
+          await disablePushNotifications();
+
+          setPushMessage(
+            "Powiadomienia na tym urządzeniu zostały wyłączone."
+          );
+
+          setNotificationPreferences(
+            (current) => ({
+              ...current,
+              push_enabled: false,
+            })
+          );
+        } catch (error) {
+          console.error(
+            "Błąd wyłączania push:",
+            error
+          );
+
+          setPushMessage(
+            `Nie udało się wyłączyć powiadomień: ${error.message}`
+          );
+        } finally {
+          setChangingPush(false);
+        }
+      }}
+    >
+      Wyłącz na tym urządzeniu
+    </button>
+  </div>
+
+  {pushMessage && (
+    <p
+      className="formMessage"
+      style={{
+        marginBottom: 0,
+      }}
+    >
+      {pushMessage}
+    </p>
+  )}
+</div>
 
         <div
           style={{
