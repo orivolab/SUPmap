@@ -16,7 +16,8 @@ function getPlaceRating(place) {
     Number(rating);
 
   return Number.isFinite(number)
-    ? number.toFixed(1)
+    ? number
+        .toFixed(1)
         .replace(".", ",")
     : null;
 }
@@ -36,16 +37,37 @@ function PlaceCard({
   onOpen,
 }) {
   const rating =
-  getPlaceRating(place);
+    getPlaceRating(place);
 
-const reviewsCount =
-  Number(
-    place.reviews_count ?? 0
-  );
+  const reviewsCount =
+    Number(
+      place.reviews_count ?? 0
+    );
+
+  function handleOpen() {
+    onOpen(place);
+  }
+
+  function handleKeyDown(event) {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      onOpen(place);
+    }
+  }
 
   return (
     <article
       className="placeListCard"
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={() =>
+        onFocus?.(place)
+      }
       style={{
         border: focused
           ? "2px solid #287b63"
@@ -54,164 +76,166 @@ const reviewsCount =
         background: focused
           ? "#edf8f3"
           : "#ffffff",
+
+        cursor: "pointer",
       }}
     >
-      <button
-        type="button"
-        onClick={() => onFocus(place)}
+      <img
+        src={getPlaceImage(place)}
+        alt={place.name}
         style={{
           width: "100%",
-          padding: 0,
-          border: "none",
-          background: "transparent",
-          textAlign: "left",
-          cursor: "pointer",
+          height: "150px",
+          display: "block",
+          objectFit: "cover",
+          borderRadius:
+            "15px 15px 0 0",
+        }}
+      />
+
+      <div
+        style={{
+          padding: "15px",
         }}
       >
-        <img
-          src={getPlaceImage(place)}
-          alt={place.name}
-          style={{
-            width: "100%",
-            height: "150px",
-            display: "block",
-            objectFit: "cover",
-            borderRadius: "15px 15px 0 0",
-          }}
-        />
-
         <div
           style={{
-            padding: "15px",
+            display: "flex",
+            justifyContent:
+              "space-between",
+            alignItems:
+              "flex-start",
+            gap: "12px",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent:
-                "space-between",
-              alignItems:
-                "flex-start",
-              gap: "12px",
-            }}
-          >
-            <div>
-              <h3
-                style={{
-                  margin: "0 0 5px",
-                  fontSize: "18px",
-                }}
-              >
-                {place.name}
-              </h3>
+          <div>
+            <h3
+              style={{
+                margin: "0 0 5px",
+                fontSize: "18px",
+              }}
+            >
+              {place.name}
+            </h3>
 
+            <p
+              style={{
+                margin: 0,
+                color: "#5c6c66",
+                fontSize: "14px",
+              }}
+            >
+              📍 {place.city}
+            </p>
+
+            {distanceLabel && (
               <p
                 style={{
-                  margin: 0,
-                  color: "#5c6c66",
-                  fontSize: "14px",
+                  margin:
+                    "6px 0 0",
+                  color:
+                    "#287b63",
+                  fontSize:
+                    "14px",
+                  fontWeight:
+                    800,
                 }}
               >
-                📍 {place.city}
+                🚗 {distanceLabel}
               </p>
-
-              {distanceLabel && (
-                <p
-                  style={{
-                    margin: "6px 0 0",
-                    color: "#287b63",
-                    fontSize: "14px",
-                    fontWeight: 800,
-                  }}
-                >
-                  🚗 {distanceLabel}
-                </p>
-              )}
-            </div>
-
-            <span
-  title={
-    reviewsCount > 0
-      ? `${reviewsCount} opinii`
-      : "Brak opinii"
-  }
-  style={{
-    flexShrink: 0,
-    padding: "6px 9px",
-    borderRadius: "10px",
-    background: "#f4f7f6",
-    fontSize: "13px",
-    fontWeight: 800,
-  }}
->
-  {rating
-    ? `${rating} ⭐`
-    : "Brak opinii"}
-</span>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              gap: "7px",
-              flexWrap: "wrap",
-              marginTop: "13px",
-            }}
-          >
-            {place.parking_available ===
-              "Tak" && (
-              <span className="placeMiniTag">
-                🅿️ Parking
-              </span>
-            )}
-
-            {[
-              "Tak",
-              "Częściowo",
-            ].includes(
-              place.dogs_allowed
-            ) && (
-              <span className="placeMiniTag">
-                🐶 Psy
-              </span>
-            )}
-
-            {place.toilets_available ===
-              "Tak" && (
-              <span className="placeMiniTag">
-                🚻 Toaleta
-              </span>
-            )}
-
-            {[
-              "Tak",
-              "Sezonowo",
-            ].includes(
-              place.gastronomy_available
-            ) && (
-              <span className="placeMiniTag">
-                🍔 Jedzenie
-              </span>
             )}
           </div>
 
-          <p
+          <span
+            title={
+              reviewsCount > 0
+                ? `${reviewsCount} opinii`
+                : "Brak opinii"
+            }
             style={{
-              margin: "13px 0 0",
-              color: "#287b63",
+              flexShrink: 0,
+              padding: "6px 9px",
+              borderRadius:
+                "10px",
+              background:
+                "#f4f7f6",
               fontSize: "13px",
               fontWeight: 800,
             }}
           >
-            Kliknij, aby pokazać na mapie
-          </p>
+            {rating
+              ? `${rating} ⭐`
+              : "Brak opinii"}
+          </span>
         </div>
-      </button>
+
+        <div
+          style={{
+            display: "flex",
+            gap: "7px",
+            flexWrap: "wrap",
+            marginTop: "13px",
+          }}
+        >
+          {place.parking_available ===
+            "Tak" && (
+            <span className="placeMiniTag">
+              🅿️ Parking
+            </span>
+          )}
+
+          {[
+            "Tak",
+            "Częściowo",
+          ].includes(
+            place.dogs_allowed
+          ) && (
+            <span className="placeMiniTag">
+              🐶 Psy
+            </span>
+          )}
+
+          {place.toilets_available ===
+            "Tak" && (
+            <span className="placeMiniTag">
+              🚻 Toaleta
+            </span>
+          )}
+
+          {[
+            "Tak",
+            "Sezonowo",
+          ].includes(
+            place.gastronomy_available
+          ) && (
+            <span className="placeMiniTag">
+              🍔 Jedzenie
+            </span>
+          )}
+        </div>
+
+        <p
+          style={{
+            margin: "13px 0 0",
+            color: "#287b63",
+            fontSize: "13px",
+            fontWeight: 800,
+          }}
+        >
+          Kliknij, aby zobaczyć szczegóły
+        </p>
+      </div>
 
       <div
         style={{
           padding: "0 15px 15px",
         }}
+        onClick={(event) =>
+          event.stopPropagation()
+        }
+        onKeyDown={(event) =>
+          event.stopPropagation()
+        }
       >
         <button
           type="button"
@@ -219,7 +243,9 @@ const reviewsCount =
           style={{
             width: "100%",
           }}
-          onClick={() => onOpen(place)}
+          onClick={() =>
+            onOpen(place)
+          }
         >
           Zobacz miejsce
         </button>
