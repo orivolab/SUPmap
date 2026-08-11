@@ -2830,121 +2830,190 @@ async function loadNotificationPreferences() {
           : "";
 
         return (
-          <article
-            key={notification.id}
+  <article
+    key={notification.id}
+    role={
+      notification.type === "new_message"
+        ? "button"
+        : undefined
+    }
+    tabIndex={
+      notification.type === "new_message"
+        ? 0
+        : undefined
+    }
+    onClick={async () => {
+      if (
+        notification.type !== "new_message" ||
+        !notification.actor_id
+      ) {
+        return;
+      }
+
+      try {
+        if (!notification.is_read) {
+          await markNotificationAsRead(
+            notification.id
+          );
+        }
+
+        const friendship = friends.find(
+          (item) => {
+            const friendId =
+              item.profile?.id ||
+              (item.sender_id === user.id
+                ? item.receiver_id
+                : item.sender_id);
+
+            return (
+              friendId ===
+              notification.actor_id
+            );
+          }
+        );
+
+        if (friendship) {
+          setActiveTab(
+            PROFILE_TABS.MESSAGES
+          );
+
+          await handleOpenConversation(
+            friendship
+          );
+        }
+
+        await Promise.all([
+          loadNotifications(),
+          loadUnreadNotificationsCount(),
+        ]);
+      } catch (error) {
+        console.error(
+          "Błąd otwierania powiadomienia:",
+          error
+        );
+      }
+    }}
+    style={{
+      padding: "16px",
+      borderRadius: "14px",
+      border: notification.is_read
+        ? "1px solid #e1e8e5"
+        : "2px solid #287b63",
+      background: notification.is_read
+        ? "#ffffff"
+        : "#f2faf7",
+      cursor:
+        notification.type === "new_message"
+          ? "pointer"
+          : "default",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "16px",
+        alignItems: "flex-start",
+      }}
+    >
+      <div>
+        <strong
+          style={{
+            fontSize: "17px",
+          }}
+        >
+          {notification.title}
+        </strong>
+
+        {notification.body && (
+          <p
             style={{
-              padding: "16px",
-              borderRadius: "14px",
-              border: notification.is_read
-                ? "1px solid #e1e8e5"
-                : "2px solid #287b63",
-              background: notification.is_read
-                ? "#ffffff"
-                : "#f2faf7",
+              margin: "6px 0 0",
+              color: "#5c6c66",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "16px",
-                alignItems: "flex-start",
-              }}
-            >
-              <div>
-                <strong
-                  style={{
-                    fontSize: "17px",
-                  }}
-                >
-                  {notification.title}
-                </strong>
+            {notification.body}
+          </p>
+        )}
 
-                {notification.body && (
-                  <p
-                    style={{
-                      margin: "6px 0 0",
-                      color: "#5c6c66",
-                    }}
-                  >
-                    {notification.body}
-                  </p>
-                )}
+        {date && (
+          <div
+            style={{
+              marginTop: "8px",
+              fontSize: "13px",
+              color: "#7a8883",
+            }}
+          >
+            {date}
+          </div>
+        )}
+      </div>
 
-                {date && (
-                  <div
-                    style={{
-                      marginTop: "8px",
-                      fontSize: "13px",
-                      color: "#7a8883",
-                    }}
-                  >
-                    {date}
-                  </div>
-                )}
-              </div>
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          justifyContent: "flex-end",
+        }}
+      >
+        {!notification.is_read && (
+          <button
+            type="button"
+            className="approveButton"
+            onClick={async (event) => {
+              event.stopPropagation();
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  flexWrap: "wrap",
-                  justifyContent: "flex-end",
-                }}
-              >
-                {!notification.is_read && (
-                  <button
-                    type="button"
-                    className="approveButton"
-                    onClick={async () => {
-                      try {
-                        await markNotificationAsRead(
-                          notification.id
-                        );
+              try {
+                await markNotificationAsRead(
+                  notification.id
+                );
 
-                        await Promise.all([
-                          loadNotifications(),
-                          loadUnreadNotificationsCount(),
-                        ]);
-                      } catch (error) {
-                        console.error(
-                          "Błąd oznaczania powiadomienia jako przeczytane:",
-                          error
-                        );
-                      }
-                    }}
-                  >
-                    Przeczytane
-                  </button>
-                )}
+                await Promise.all([
+                  loadNotifications(),
+                  loadUnreadNotificationsCount(),
+                ]);
+              } catch (error) {
+                console.error(
+                  "Błąd oznaczania powiadomienia jako przeczytane:",
+                  error
+                );
+              }
+            }}
+          >
+            Przeczytane
+          </button>
+        )}
 
-                <button
-                  type="button"
-                  className="rejectButton"
-                  onClick={async () => {
-                    try {
-                      await deleteNotification(
-                        notification.id
-                      );
+        <button
+          type="button"
+          className="rejectButton"
+          onClick={async (event) => {
+            event.stopPropagation();
 
-                      await Promise.all([
-                        loadNotifications(),
-                        loadUnreadNotificationsCount(),
-                      ]);
-                    } catch (error) {
-                      console.error(
-                        "Błąd usuwania powiadomienia:",
-                        error
-                      );
-                    }
-                  }}
-                >
-                  Usuń
-                </button>
-              </div>
-            </div>
-          </article>
-        );
+            try {
+              await deleteNotification(
+                notification.id
+              );
+
+              await Promise.all([
+                loadNotifications(),
+                loadUnreadNotificationsCount(),
+              ]);
+            } catch (error) {
+              console.error(
+                "Błąd usuwania powiadomienia:",
+                error
+              );
+            }
+          }}
+        >
+          Usuń
+        </button>
+      </div>
+    </div>
+  </article>
+);
       })}
     </div>
   )}
