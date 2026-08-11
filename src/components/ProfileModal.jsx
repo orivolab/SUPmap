@@ -1019,34 +1019,48 @@ async function loadConversationList() {
           </p>
         </article>
 
-        <article
-          className="infoCard"
-          style={{
-            minHeight: "125px",
-            display: "grid",
-            alignContent: "center",
-            textAlign: "center",
-          }}
-        >
-          <h3
-            style={{
-              margin: "0 0 10px",
-              fontSize: "18px",
-            }}
-          >
-            Poziom
-          </h3>
+       <article
+  className="infoCard"
+  style={{
+    minHeight: "125px",
+    display: "grid",
+    alignContent: "center",
+    textAlign: "center",
+    padding: "16px 12px",
+    boxSizing: "border-box",
+  }}
+>
+  <h3
+    style={{
+      margin: "0 0 10px",
+      fontSize: "18px",
+    }}
+  >
+    Poziom
+  </h3>
 
-          <p
-            style={{
-              margin: 0,
-              fontSize: "18px",
-              fontWeight: 800,
-            }}
-          >
-            {level.icon} {level.name}
-          </p>
-        </article>
+  <p
+    style={{
+      margin: 0,
+      fontSize: "clamp(14px, 3.8vw, 18px)",
+      fontWeight: 800,
+      lineHeight: 1.25,
+      overflowWrap: "anywhere",
+    }}
+  >
+    <span
+      style={{
+        display: "block",
+        fontSize: "24px",
+        marginBottom: "4px",
+      }}
+    >
+      {level.icon}
+    </span>
+
+    <span>{level.name}</span>
+  </p>
+</article>
 
         <article
           className="infoCard"
