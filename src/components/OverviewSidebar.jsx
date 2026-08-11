@@ -5,11 +5,7 @@ import {
 } from "react";
 
 const MAIN_SECTIONS = [
-  {
-    id: "overview-score",
-    icon: "⭐",
-    label: "SUP Score",
-  },
+
   {
     id: "overview-live",
     icon: "🔴",
@@ -174,12 +170,12 @@ function SidebarButton({
 }
 
 function OverviewSidebar() {
-  const [
-    activeSection,
-    setActiveSection,
-  ] = useState(
-    "overview-score"
-  );
+ const [
+  activeSection,
+  setActiveSection,
+] = useState(
+  "overview-live"
+);
 
   const [
     informationOpen,
