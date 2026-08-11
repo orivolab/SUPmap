@@ -9,6 +9,10 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
 
+      workbox: {
+        importScripts: ["/push-sw.js"],
+      },
+
       manifest: {
         name: "SUPmap",
         short_name: "SUPmap",
