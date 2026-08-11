@@ -1040,26 +1040,28 @@ async function loadConversationList() {
   </h3>
 
   <p
+  style={{
+    margin: 0,
+    fontSize: "clamp(13px, 3.2vw, 17px)",
+    fontWeight: 800,
+    lineHeight: 1.25,
+    wordBreak: "normal",
+    overflowWrap: "normal",
+    whiteSpace: "normal",
+  }}
+>
+  <span
     style={{
-      margin: 0,
-      fontSize: "clamp(14px, 3.8vw, 18px)",
-      fontWeight: 800,
-      lineHeight: 1.25,
-      overflowWrap: "anywhere",
+      display: "block",
+      fontSize: "24px",
+      marginBottom: "6px",
     }}
   >
-    <span
-      style={{
-        display: "block",
-        fontSize: "24px",
-        marginBottom: "4px",
-      }}
-    >
-      {level.icon}
-    </span>
+    {level.icon}
+  </span>
 
-    <span>{level.name}</span>
-  </p>
+  <span>{level.name}</span>
+</p>
 </article>
 
         <article
@@ -2799,7 +2801,6 @@ async function loadConversationList() {
                         border: mine
                           ? "none"
                           : "1px solid #dfe7e3",
-                        overflowWrap: "anywhere",
                       }}
                     >
                       <div
