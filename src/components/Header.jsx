@@ -3,9 +3,11 @@ function Header({
   profile,
   isAdmin,
   pendingCount,
+  unreadNotificationsCount,
   onOpenAdmin,
   onOpenAuth,
   onOpenProfile,
+  onOpenNotifications,
   onAddPlace,
   onGoHome,
 }) {
@@ -35,14 +37,55 @@ function Header({
         )}
 
         {user ? (
-          <button
-            type="button"
-            className="adminButton"
-            onClick={onOpenProfile}
-          >
-            👤 {profile?.username || "Mój profil"}
-          </button>
-        ) : (
+  <>
+    <button
+      type="button"
+      className="adminButton"
+      onClick={onOpenProfile}
+    >
+      👤 {profile?.username || "Mój profil"}
+    </button>
+
+    <button
+      type="button"
+      className="adminButton"
+      onClick={onOpenNotifications}
+      aria-label="Powiadomienia"
+      style={{
+        position: "relative",
+        minWidth: "48px",
+      }}
+    >
+      🔔
+
+      {unreadNotificationsCount > 0 && (
+        <span
+          style={{
+            position: "absolute",
+            top: "-7px",
+            right: "-7px",
+            minWidth: "20px",
+            height: "20px",
+            padding: "0 5px",
+            borderRadius: "999px",
+            background: "#287b63",
+            color: "#ffffff",
+            display: "grid",
+            placeItems: "center",
+            fontSize: "12px",
+            fontWeight: 800,
+            border: "2px solid #ffffff",
+            boxSizing: "border-box",
+          }}
+        >
+          {unreadNotificationsCount > 99
+            ? "99+"
+            : unreadNotificationsCount}
+        </span>
+      )}
+    </button>
+  </>
+) : (
           <button
             type="button"
             className="adminButton"

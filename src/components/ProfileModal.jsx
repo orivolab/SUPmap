@@ -28,6 +28,19 @@ import {
   sendMessage,
 } from "../services/messagesService";
 
+import {
+  ensureNotificationPreferences,
+  updateNotificationPreferences,
+} from "../services/notificationPreferencesService";
+
+import {
+  deleteNotification,
+  getNotifications,
+  getUnreadNotificationsCount,
+  markAllNotificationsAsRead,
+  markNotificationAsRead,
+} from "../services/notificationsService";
+
 const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 
 const PROFILE_TABS = {
@@ -36,6 +49,7 @@ const PROFILE_TABS = {
   PASSWORD: "password",
   FRIENDS: "friends",
   MESSAGES: "messages",
+  NOTIFICATIONS: "notifications",
   FAVORITES: "favorites",
 };
 
@@ -118,19 +132,19 @@ function UserAvatar({
     </button>
   );
 }
-
 function ProfileModal({
   profile,
   user,
   favorites,
   points,
   level,
+  initialTab = PROFILE_TABS.PROFILE,
   onClose,
   onLogout,
   onOpenPublicProfile,
 }) {
   const [activeTab, setActiveTab] = useState(
-    PROFILE_TABS.PROFILE
+    initialTab
   );
 
   const [username, setUsername] = useState(
@@ -151,15 +165,21 @@ function ProfileModal({
 
   const [friendsMessage, setFriendsMessage] =
     useState("");
-    
-const [unreadMessagesCount, setUnreadMessagesCount] =
-  useState(0);
 
-const [conversationList, setConversationList] =
-  useState([]);
+  const [
+    unreadMessagesCount,
+    setUnreadMessagesCount,
+  ] = useState(0);
 
-const [loadingConversationList, setLoadingConversationList] =
-  useState(false);
+  const [
+    conversationList,
+    setConversationList,
+  ] = useState([]);
+
+  const [
+    loadingConversationList,
+    setLoadingConversationList,
+  ] = useState(false);
 
   const [savingProfile, setSavingProfile] =
     useState(false);
@@ -182,26 +202,36 @@ const [loadingConversationList, setLoadingConversationList] =
   ] = useState([]);
 
   const [friends, setFriends] = useState([]);
+
   const [selectedFriend, setSelectedFriend] =
-  useState(null);
+    useState(null);
 
-const [conversationMessages, setConversationMessages] =
-  useState([]);
+  const [
+    conversationMessages,
+    setConversationMessages,
+  ] = useState([]);
 
-const [messageText, setMessageText] =
-  useState("");
+  const [messageText, setMessageText] =
+    useState("");
 
-const [loadingConversation, setLoadingConversation] =
-  useState(false);
+  const [
+    loadingConversation,
+    setLoadingConversation,
+  ] = useState(false);
 
-const [sendingMessage, setSendingMessage] =
-  useState(false);
+  const [sendingMessage, setSendingMessage] =
+    useState(false);
 
-const [messagesMessage, setMessagesMessage] =
-  useState("");
-  const [pointsHistory, setPointsHistory] = useState([]);
-const [loadingPointsHistory, setLoadingPointsHistory] =
-  useState(true);
+  const [messagesMessage, setMessagesMessage] =
+    useState("");
+
+  const [pointsHistory, setPointsHistory] =
+    useState([]);
+
+  const [
+    loadingPointsHistory,
+    setLoadingPointsHistory,
+  ] = useState(true);
 
   const [
     incomingRequests,
@@ -213,10 +243,57 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
     setOutgoingRequests,
   ] = useState([]);
 
+  const [
+    notificationPreferences,
+    setNotificationPreferences,
+  ] = useState(null);
+
+  const [
+    loadingNotificationPreferences,
+    setLoadingNotificationPreferences,
+  ] = useState(false);
+
+  const [
+    savingNotificationPreferences,
+    setSavingNotificationPreferences,
+  ] = useState(false);
+
+  const [
+    notificationPreferencesMessage,
+    setNotificationPreferencesMessage,
+  ] = useState("");
+
+  const [notifications, setNotifications] =
+    useState([]);
+
+  const [
+    unreadNotificationsCount,
+    setUnreadNotificationsCount,
+  ] = useState(0);
+
+  const [
+    loadingNotifications,
+    setLoadingNotifications,
+  ] = useState(false);
+
+  const [
+    notificationsMessage,
+    setNotificationsMessage,
+  ] = useState("");
+
+  useEffect(() => {
+    setActiveTab(
+      initialTab || PROFILE_TABS.PROFILE
+    );
+  }, [initialTab]);
+
   useEffect(() => {
     setUsername(profile?.username || "");
     setAvatarUrl(profile?.avatar_url || null);
-  }, [profile?.username, profile?.avatar_url]);
+  }, [
+    profile?.username,
+    profile?.avatar_url,
+  ]);
 
   useEffect(() => {
     if (user?.id) {
@@ -225,29 +302,42 @@ const [loadingPointsHistory, setLoadingPointsHistory] =
   }, [user?.id]);
 
   useEffect(() => {
-  if (user?.id) {
-    loadUnreadMessagesCount();
-  }
-}, [user?.id]);
-
-useEffect(() => {
-  if (user?.id) {
-    loadConversationList();
-  }
-}, [user?.id]);
+    if (user?.id) {
+      loadUnreadMessagesCount();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
-  if (user?.id) {
-    loadPointsHistory();
-  }
-}, [user?.id]);
+    if (user?.id) {
+      loadConversationList();
+    }
+  }, [user?.id]);
 
-useEffect(() => {
-  if (!user?.id) {
-    return undefined;
-  }
+  useEffect(() => {
+    if (user?.id) {
+      loadPointsHistory();
+    }
+  }, [user?.id]);
 
-  const channel = supabase
+  useEffect(() => {
+    if (user?.id) {
+      loadNotificationPreferences();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) {
+      loadNotifications();
+      loadUnreadNotificationsCount();
+    }
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return undefined;
+    }
+
+    const channel = supabase
     .channel(`messages-${user.id}`)
     .on(
       "postgres_changes",
@@ -577,6 +667,79 @@ async function loadConversationList() {
     setConversationList([]);
   } finally {
     setLoadingConversationList(false);
+  }
+}
+
+async function loadNotifications() {
+  setLoadingNotifications(true);
+  setNotificationsMessage("");
+
+  try {
+    const data = await getNotifications();
+
+    setNotifications(data ?? []);
+  } catch (error) {
+    console.error(
+      "Błąd pobierania powiadomień:",
+      error
+    );
+
+    setNotifications([]);
+
+    setNotificationsMessage(
+      `Nie udało się pobrać powiadomień: ${error.message}`
+    );
+  } finally {
+    setLoadingNotifications(false);
+  }
+}
+
+async function loadUnreadNotificationsCount() {
+  try {
+    const count =
+      await getUnreadNotificationsCount();
+
+    setUnreadNotificationsCount(
+      count ?? 0
+    );
+  } catch (error) {
+    console.error(
+      "Błąd pobierania liczby nieprzeczytanych powiadomień:",
+      error
+    );
+
+    setUnreadNotificationsCount(0);
+  }
+}
+
+async function loadNotificationPreferences() {
+  if (!user?.id) {
+    return;
+  }
+
+  setLoadingNotificationPreferences(true);
+  setNotificationPreferencesMessage("");
+
+  try {
+    const preferences =
+      await ensureNotificationPreferences(
+        user.id
+      );
+
+    setNotificationPreferences(
+      preferences
+    );
+  } catch (error) {
+    console.error(
+      "Błąd pobierania ustawień powiadomień:",
+      error
+    );
+
+    setNotificationPreferencesMessage(
+      `Nie udało się pobrać ustawień: ${error.message}`
+    );
+  } finally {
+    setLoadingNotificationPreferences(false);
   }
 }
 
@@ -1131,6 +1294,10 @@ async function loadConversationList() {
       ? `Wiadomości (${unreadMessagesCount})`
       : "Wiadomości"
   }
+/>
+<TabButton
+  tab={PROFILE_TABS.NOTIFICATIONS}
+  label="Powiadomienia"
 />
 
         <TabButton
@@ -2540,6 +2707,512 @@ async function loadConversationList() {
               </article>
             );
           }
+        )}
+      </div>
+    )}
+  </section>
+)}
+
+{activeTab === PROFILE_TABS.NOTIFICATIONS && (
+  <section>
+    <h2
+      style={{
+        fontSize: "26px",
+        marginTop: 0,
+      }}
+    >
+      🔔 Powiadomienia
+    </h2>
+
+<div
+  className="adminCard"
+  style={{
+    padding: "26px",
+    marginBottom: "26px",
+  }}
+>
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      gap: "14px",
+      flexWrap: "wrap",
+    }}
+  >
+    <div>
+      <h3
+        style={{
+          margin: 0,
+          fontSize: "22px",
+        }}
+      >
+        🔔 Twoje powiadomienia
+      </h3>
+
+      <p
+        style={{
+          margin: "6px 0 0",
+          color: "#5c6c66",
+        }}
+      >
+        Nieprzeczytane: {unreadNotificationsCount}
+      </p>
+    </div>
+
+    {unreadNotificationsCount > 0 && (
+      <button
+        type="button"
+        className="approveButton"
+        onClick={async () => {
+          try {
+            await markAllNotificationsAsRead();
+
+            await Promise.all([
+              loadNotifications(),
+              loadUnreadNotificationsCount(),
+            ]);
+          } catch (error) {
+            console.error(
+              "Błąd oznaczania powiadomień jako przeczytane:",
+              error
+            );
+
+            setNotificationsMessage(
+              `Nie udało się oznaczyć powiadomień jako przeczytane: ${error.message}`
+            );
+          }
+        }}
+      >
+        Oznacz wszystkie jako przeczytane
+      </button>
+    )}
+  </div>
+
+  {notificationsMessage && (
+    <p className="formMessage">
+      {notificationsMessage}
+    </p>
+  )}
+
+  {loadingNotifications ? (
+    <div className="emptyPhotos">
+      <p>Ładowanie powiadomień...</p>
+    </div>
+  ) : notifications.length === 0 ? (
+    <div
+      className="emptyPhotos"
+      style={{
+        marginTop: "20px",
+      }}
+    >
+      <p>Nie masz jeszcze żadnych powiadomień.</p>
+    </div>
+  ) : (
+    <div
+      style={{
+        display: "grid",
+        gap: "12px",
+        marginTop: "22px",
+      }}
+    >
+      {notifications.map((notification) => {
+        const date = notification.created_at
+          ? new Date(
+              notification.created_at
+            ).toLocaleString("pl-PL", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "";
+
+        return (
+          <article
+            key={notification.id}
+            style={{
+              padding: "16px",
+              borderRadius: "14px",
+              border: notification.is_read
+                ? "1px solid #e1e8e5"
+                : "2px solid #287b63",
+              background: notification.is_read
+                ? "#ffffff"
+                : "#f2faf7",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "16px",
+                alignItems: "flex-start",
+              }}
+            >
+              <div>
+                <strong
+                  style={{
+                    fontSize: "17px",
+                  }}
+                >
+                  {notification.title}
+                </strong>
+
+                {notification.body && (
+                  <p
+                    style={{
+                      margin: "6px 0 0",
+                      color: "#5c6c66",
+                    }}
+                  >
+                    {notification.body}
+                  </p>
+                )}
+
+                {date && (
+                  <div
+                    style={{
+                      marginTop: "8px",
+                      fontSize: "13px",
+                      color: "#7a8883",
+                    }}
+                  >
+                    {date}
+                  </div>
+                )}
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  flexWrap: "wrap",
+                  justifyContent: "flex-end",
+                }}
+              >
+                {!notification.is_read && (
+                  <button
+                    type="button"
+                    className="approveButton"
+                    onClick={async () => {
+                      try {
+                        await markNotificationAsRead(
+                          notification.id
+                        );
+
+                        await Promise.all([
+                          loadNotifications(),
+                          loadUnreadNotificationsCount(),
+                        ]);
+                      } catch (error) {
+                        console.error(
+                          "Błąd oznaczania powiadomienia jako przeczytane:",
+                          error
+                        );
+                      }
+                    }}
+                  >
+                    Przeczytane
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  className="rejectButton"
+                  onClick={async () => {
+                    try {
+                      await deleteNotification(
+                        notification.id
+                      );
+
+                      await Promise.all([
+                        loadNotifications(),
+                        loadUnreadNotificationsCount(),
+                      ]);
+                    } catch (error) {
+                      console.error(
+                        "Błąd usuwania powiadomienia:",
+                        error
+                      );
+                    }
+                  }}
+                >
+                  Usuń
+                </button>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  )}
+</div>
+
+    {loadingNotificationPreferences ? (
+      <div className="emptyPhotos">
+        <p>Ładowanie ustawień...</p>
+      </div>
+    ) : !notificationPreferences ? (
+      <div className="emptyPhotos">
+        <p>
+          Nie udało się załadować ustawień powiadomień.
+        </p>
+      </div>
+    ) : (
+      <div
+        className="adminCard"
+        style={{
+          padding: "26px",
+        }}
+      >
+        <h3
+          style={{
+            marginTop: 0,
+            fontSize: "22px",
+          }}
+        >
+          Co chcesz otrzymywać?
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "14px",
+            marginTop: "18px",
+          }}
+        >
+          {[
+            {
+              key: "new_places",
+              label: "Nowe miejsca",
+            },
+            {
+              key: "place_updates",
+              label: "Aktualizacje istniejących miejsc",
+            },
+            {
+              key: "place_edits",
+              label: "Edycje danych miejsc",
+            },
+            {
+              key: "new_messages",
+              label: "Nowe wiadomości",
+            },
+            {
+              key: "watched_places",
+              label: "Zmiany w obserwowanych miejscach",
+            },
+          ].map((item) => (
+            <label
+              key={item.key}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                cursor: "pointer",
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={Boolean(
+                  notificationPreferences[item.key]
+                )}
+                onChange={(event) =>
+                  setNotificationPreferences(
+                    (current) => ({
+                      ...current,
+                      [item.key]:
+                        event.target.checked,
+                    })
+                  )
+                }
+              />
+
+              <span>{item.label}</span>
+            </label>
+          ))}
+        </div>
+
+        <hr
+          style={{
+            margin: "28px 0",
+            border: 0,
+            borderTop: "1px solid #e1e8e5",
+          }}
+        />
+
+        <h3
+          style={{
+            fontSize: "22px",
+          }}
+        >
+          Kanały powiadomień
+        </h3>
+
+        <div
+          style={{
+            display: "grid",
+            gap: "14px",
+            marginTop: "18px",
+          }}
+        >
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(
+                notificationPreferences.push_enabled
+              )}
+              onChange={(event) =>
+                setNotificationPreferences(
+                  (current) => ({
+                    ...current,
+                    push_enabled:
+                      event.target.checked,
+                  })
+                )
+              }
+            />
+
+            <span>
+              Powiadomienia na telefon / ze strony
+            </span>
+          </label>
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(
+                notificationPreferences.email_enabled
+              )}
+              onChange={(event) =>
+                setNotificationPreferences(
+                  (current) => ({
+                    ...current,
+                    email_enabled:
+                      event.target.checked,
+                  })
+                )
+              }
+            />
+
+            <span>E-mail</span>
+          </label>
+        </div>
+
+        {notificationPreferences.email_enabled && (
+          <div
+            style={{
+              marginTop: "24px",
+            }}
+          >
+            <label
+              style={{
+                display: "grid",
+                gap: "8px",
+                fontWeight: 700,
+              }}
+            >
+              Częstotliwość e-maili
+
+              <select
+                value={
+                  notificationPreferences.email_frequency ||
+                  "instant"
+                }
+                onChange={(event) =>
+                  setNotificationPreferences(
+                    (current) => ({
+                      ...current,
+                      email_frequency:
+                        event.target.value,
+                    })
+                  )
+                }
+                style={{
+                  padding: "12px 14px",
+                  border: "1px solid #d8e2de",
+                  borderRadius: "12px",
+                  font: "inherit",
+                }}
+              >
+                <option value="instant">
+                  Od razu
+                </option>
+                <option value="daily">
+                  Podsumowanie dzienne
+                </option>
+                <option value="weekly">
+                  Podsumowanie tygodniowe
+                </option>
+              </select>
+            </label>
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="approveButton"
+          disabled={savingNotificationPreferences}
+          onClick={async () => {
+            setSavingNotificationPreferences(true);
+            setNotificationPreferencesMessage(
+              "Zapisywanie ustawień..."
+            );
+
+            try {
+              const updated =
+                await updateNotificationPreferences(
+                  user.id,
+                  notificationPreferences
+                );
+
+              setNotificationPreferences(updated);
+
+              setNotificationPreferencesMessage(
+                "Ustawienia powiadomień zostały zapisane."
+              );
+            } catch (error) {
+              console.error(
+                "Błąd zapisywania ustawień powiadomień:",
+                error
+              );
+
+              setNotificationPreferencesMessage(
+                `Nie udało się zapisać ustawień: ${error.message}`
+              );
+            } finally {
+              setSavingNotificationPreferences(false);
+            }
+          }}
+          style={{
+            marginTop: "28px",
+          }}
+        >
+          {savingNotificationPreferences
+            ? "Zapisywanie..."
+            : "Zapisz ustawienia"}
+        </button>
+
+        {notificationPreferencesMessage && (
+          <p className="formMessage">
+            {notificationPreferencesMessage}
+          </p>
         )}
       </div>
     )}

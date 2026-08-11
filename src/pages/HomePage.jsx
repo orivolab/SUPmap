@@ -271,6 +271,7 @@ function HomePage({
   profile,
   isAdmin,
   pendingCount = 0,
+  unreadNotificationsCount,
   places,
   searchText = "",
   filters,
@@ -282,6 +283,7 @@ function HomePage({
   onOpenAdmin,
   onOpenAuth,
   onOpenProfile,
+  onOpenNotifications,
   onAddPlace,
   onGoHome,
 }) {
@@ -408,17 +410,19 @@ function HomePage({
 
   return (
     <main className="app">
-      <Header
-        user={user}
-        profile={profile}
-        isAdmin={isAdmin}
-        pendingCount={pendingCount}
-        onOpenAdmin={onOpenAdmin}
-        onOpenAuth={onOpenAuth}
-        onOpenProfile={onOpenProfile}
-        onAddPlace={onAddPlace}
-        onGoHome={onGoHome}
-      />
+     <Header
+  user={user}
+  profile={profile}
+  isAdmin={isAdmin}
+  pendingCount={pendingCount}
+  unreadNotificationsCount={unreadNotificationsCount}
+  onOpenAdmin={onOpenAdmin}
+  onOpenAuth={onOpenAuth}
+  onOpenProfile={onOpenProfile}
+  onOpenNotifications={onOpenNotifications}
+  onAddPlace={onAddPlace}
+  onGoHome={onGoHome}
+/>
 
       <section className="hero">
         <div className="heroContent">

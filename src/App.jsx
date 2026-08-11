@@ -72,6 +72,11 @@ import {
   signOut,
 } from "./services/authService";
 
+import {
+  getUnreadNotificationsCount,
+} from "./services/notificationsService";
+
+
 const ADMIN_EMAIL = "orivolab@gmail.com";
 
 const PAGE = {
@@ -789,6 +794,17 @@ function App() {
   const [page, setPage] =
     useState(PAGE.HOME);
 
+    const [
+  unreadNotificationsCount,
+  setUnreadNotificationsCount,
+] = useState(0);
+
+const [
+  profileStartTab,
+  setProfileStartTab,
+] = useState("profile");
+
+
   const [
     returnPageAfterAuth,
     setReturnPageAfterAuth,
@@ -1002,6 +1018,29 @@ if (
       stopListening?.();
     };
   }, []);
+
+  
+useEffect(() => {
+  if (!user?.id) {
+    setUnreadNotificationsCount(0);
+    return;
+  }
+
+  getUnreadNotificationsCount()
+    .then((count) => {
+      setUnreadNotificationsCount(
+        count ?? 0
+      );
+    })
+    .catch((error) => {
+      console.error(
+        "Błąd pobierania liczby powiadomień:",
+        error
+      );
+
+      setUnreadNotificationsCount(0);
+    });
+}, [user?.id]);
 
   useEffect(() => {
     async function handlePopState() {
@@ -1423,14 +1462,26 @@ if (
   }
 
   function openProfile() {
-    if (!user) {
-      openAuth(PAGE.PROFILE);
-      return;
-    }
-
-    loadUserData(user);
-    setPage(PAGE.PROFILE);
+  if (!user) {
+    openAuth(PAGE.PROFILE);
+    return;
   }
+
+  setProfileStartTab("profile");
+  loadUserData(user);
+  setPage(PAGE.PROFILE);
+}
+
+function openNotifications() {
+  if (!user) {
+    openAuth(PAGE.PROFILE);
+    return;
+  }
+
+  setProfileStartTab("notifications");
+  loadUserData(user);
+  setPage(PAGE.PROFILE);
+}
 
   function openAddPlace() {
     if (!user) {
@@ -2320,9 +2371,13 @@ if (page === PAGE.RESET_PASSWORD) {
         user={user}
         favorites={favorites}
         points={points}
-        level={getUserLevel(
+        level={getUserLevel
+          (
           points
         )}
+
+initialTab={profileStartTab}
+
         onBack={() => {
           if (
             selectedPlace &&
@@ -2412,46 +2467,52 @@ onDeleteSupportTicket={
   }
 
   return renderWithSupport(
-    <HomePage
-      user={user}
-      profile={profile}
-      isAdmin={isAdmin}
-      pendingCount={
-        pendingCount
-      }
-      places={visiblePlaces}
-      searchText={searchText}
-      filters={filters}
-      activeFilters={
-        activeFilters
-      }
-      onSearchChange={
-        setSearchText
-      }
-      onClearSearch={() =>
-        setSearchText("")
-      }
-      onToggleFilter={
-        handleToggleFilter
-      }
-      onSelectPlace={
-        handleSelectPlace
-      }
-      onOpenAdmin={
-        openAdmin
-      }
-      onOpenAuth={() =>
-        openAuth(PAGE.HOME)
-      }
-      onOpenProfile={
-        openProfile
-      }
-      onAddPlace={
-        openAddPlace
-      }
-      onGoHome={goHome}
-    />
-  );
+  <HomePage
+    user={user}
+    profile={profile}
+    isAdmin={isAdmin}
+    pendingCount={
+      pendingCount
+    }
+    unreadNotificationsCount={
+      unreadNotificationsCount
+    }
+    places={visiblePlaces}
+    searchText={searchText}
+    filters={filters}
+    activeFilters={
+      activeFilters
+    }
+    onSearchChange={
+      setSearchText
+    }
+    onClearSearch={() =>
+      setSearchText("")
+    }
+    onToggleFilter={
+      handleToggleFilter
+    }
+    onSelectPlace={
+      handleSelectPlace
+    }
+    onOpenAdmin={
+      openAdmin
+    }
+    onOpenAuth={() =>
+      openAuth(PAGE.HOME)
+    }
+    onOpenProfile={
+      openProfile
+    }
+    onOpenNotifications={
+      openNotifications
+    }
+    onAddPlace={
+      openAddPlace
+    }
+    onGoHome={goHome}
+  />
+);
 }
 
 export default App;
