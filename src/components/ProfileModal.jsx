@@ -2830,51 +2830,60 @@ async function loadConversationList() {
       </div>
 
       <form
-        onSubmit={handleSendMessage}
-        style={{
-          display: "flex",
-          gap: "10px",
-          padding: "16px 20px",
-          borderTop: "1px solid #e1e8e5",
-          background: "#ffffff",
-        }}
-      >
-        <textarea
-          value={messageText}
-          onChange={(event) =>
-            setMessageText(
-              event.target.value
-            )
-          }
-          placeholder="Napisz wiadomość..."
-          maxLength={2000}
-          rows={2}
-          style={{
-            flex: 1,
-            resize: "none",
-            padding: "12px 14px",
-            border: "1px solid #d8e2de",
-            borderRadius: "12px",
-            font: "inherit",
-          }}
-        />
+  onSubmit={handleSendMessage}
+  style={{
+    display: "grid",
+    gridTemplateColumns:
+      "minmax(0, 1fr) auto",
+    gap: "10px",
+    padding: "16px",
+    borderTop: "1px solid #e1e8e5",
+    background: "#ffffff",
+    alignItems: "stretch",
+  }}
+>
+  <textarea
+    value={messageText}
+    onChange={(event) =>
+      setMessageText(event.target.value)
+    }
+    placeholder="Napisz wiadomość..."
+    maxLength={2000}
+    rows={2}
+    style={{
+      width: "100%",
+      minWidth: 0,
+      boxSizing: "border-box",
+      resize: "none",
+      padding: "12px 14px",
+      border: "1px solid #d8e2de",
+      borderRadius: "12px",
+      font: "inherit",
+      lineHeight: 1.4,
+    }}
+  />
 
-        <button
-          type="submit"
-          className="approveButton"
-          disabled={
-            sendingMessage ||
-            !messageText.trim()
-          }
-          style={{
-            alignSelf: "stretch",
-          }}
-        >
-          {sendingMessage
-            ? "Wysyłanie..."
-            : "Wyślij"}
-        </button>
-      </form>
+  <button
+    type="submit"
+    className="approveButton"
+    disabled={
+      sendingMessage ||
+      !messageText.trim()
+    }
+    style={{
+      width: "auto",
+      minWidth: "92px",
+      padding: "0 16px",
+      margin: 0,
+      alignSelf: "stretch",
+      whiteSpace: "nowrap",
+    }}
+  >
+    {sendingMessage
+      ? "..."
+      : "Wyślij"}
+  </button>
+</form>
     </section>
   </div>
 )}
