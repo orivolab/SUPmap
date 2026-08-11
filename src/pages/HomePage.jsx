@@ -642,101 +642,130 @@ const reviewsCount =
                     );
 
                   return (
-                    <article
-                      key={place.id}
-                      className="placeListCard"
-                    >
-                      <img
-                        src={getPlaceImage(
-                          place
-                        )}
-                        alt={place.name}
-                        style={{
-                          width: "100%",
-                          height: "150px",
-                          objectFit: "cover",
-                          borderRadius:
-                            "15px 15px 0 0",
-                        }}
-                      />
+               <article
+  key={place.id}
+  className="placeListCard"
+  onClick={() =>
+    onSelectPlace(place)
+  }
+  onKeyDown={(event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
+      event.preventDefault();
+      onSelectPlace(place);
+    }
+  }}
+  role="button"
+  tabIndex={0}
+  style={{
+    cursor: "pointer",
+  }}
+>
+  <img
+    src={getPlaceImage(place)}
+    alt={place.name}
+    style={{
+      width: "100%",
+      height: "150px",
+      objectFit: "cover",
+      borderRadius:
+        "15px 15px 0 0",
+    }}
+  />
 
-                      <div
-                        style={{
-                          padding: "15px",
-                        }}
-                      >
-                        <h3>
-                          {place.name}
-                        </h3>
+  <div
+    style={{
+      padding: "15px",
+    }}
+  >
+    <h3>
+      {place.name}
+    </h3>
 
-                        <p>
-                          📍{" "}
-                          {place.city ||
-                            "Brak miasta"}
-                        </p>
+    <p>
+      📍{" "}
+      {place.city ||
+        "Brak miasta"}
+    </p>
 
-                        {distance && (
-                          <p>
-                            🚗 {distance}
-                          </p>
-                        )}
+    {distance && (
+      <p>
+        🚗 {distance}
+      </p>
+    )}
 
-                       <p>
-  {rating ? (
-    <>
-      ⭐ {rating}{" "}
-      <span
-        style={{
-          color: "#5c6c66",
-        }}
-      >
-        (
-        {reviewsCount}{" "}
-        {reviewsCount === 1
-          ? "opinia"
-          : reviewsCount >= 2 &&
-              reviewsCount <= 4
-            ? "opinie"
-            : "opinii"}
-        )
-      </span>
-    </>
-  ) : (
-    "⭐ Brak opinii"
-  )}
-</p>
+    <p>
+      {rating ? (
+        <>
+          ⭐ {rating}{" "}
+          <span
+            style={{
+              color: "#5c6c66",
+            }}
+          >
+            (
+            {reviewsCount}{" "}
+            {reviewsCount === 1
+              ? "opinia"
+              : reviewsCount >= 2 &&
+                  reviewsCount <= 4
+                ? "opinie"
+                : "opinii"}
+            )
+          </span>
+        </>
+      ) : (
+        "⭐ Brak opinii"
+      )}
+    </p>
 
-                        <button
-                          className="addPlaceButton"
-                          onClick={() => {
-                            handleFocusPlace(
-                              place
-                            );
-                          }}
-                        >
-                          Pokaż na mapie
-                        </button>
+    <button
+      type="button"
+      className="addPlaceButton"
+      onClick={(event) => {
+        event.stopPropagation();
 
-                        <button
-                          className="addPlaceButton"
-                          onClick={() =>
-                            onSelectPlace(
-                              place
-                            )
-                          }
-                          style={{
-                            marginTop:
-                              "8px",
-                          }}
-                        >
-                          Zobacz miejsce
-                        </button>
+        handleFocusPlace(
+          place
+        );
+      }}
+    >
+      Pokaż na mapie
+    </button>
 
-                        <NavigationButtons
-                          place={place}
-                        />
-                      </div>
-                    </article>
+    <button
+      type="button"
+      className="addPlaceButton"
+      onClick={(event) => {
+        event.stopPropagation();
+
+        onSelectPlace(
+          place
+        );
+      }}
+      style={{
+        marginTop: "8px",
+      }}
+    >
+      Zobacz miejsce
+    </button>
+
+    <div
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+      onKeyDown={(event) =>
+        event.stopPropagation()
+      }
+    >
+      <NavigationButtons
+        place={place}
+      />
+    </div>
+  </div>
+</article>
                   );
                 }
               )}
