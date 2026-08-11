@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   updateProfile,
+  getPointsHistory,
 } from "../services/profileService";
 
 import {
@@ -23,6 +24,7 @@ const MAX_AVATAR_SIZE = 5 * 1024 * 1024;
 
 const PROFILE_TABS = {
   PROFILE: "profile",
+  POINTS: "points",
   PASSWORD: "password",
   FRIENDS: "friends",
   FAVORITES: "favorites",
@@ -162,6 +164,9 @@ function ProfileModal({
   ] = useState([]);
 
   const [friends, setFriends] = useState([]);
+  const [pointsHistory, setPointsHistory] = useState([]);
+const [loadingPointsHistory, setLoadingPointsHistory] =
+  useState(true);
 
   const [
     incomingRequests,
@@ -183,6 +188,12 @@ function ProfileModal({
       loadFriends();
     }
   }, [user?.id]);
+
+  useEffect(() => {
+  if (user?.id) {
+    loadPointsHistory();
+  }
+}, [user?.id]);
 
   const outgoingUserIds = useMemo(() => {
     return new Set(
@@ -290,6 +301,33 @@ function ProfileModal({
       </button>
     );
   }
+
+  async function loadPointsHistory() {
+  if (!user?.id) {
+    setPointsHistory([]);
+    setLoadingPointsHistory(false);
+    return;
+  }
+
+  setLoadingPointsHistory(true);
+
+  try {
+    const history = await getPointsHistory(
+      user.id
+    );
+
+    setPointsHistory(history ?? []);
+  } catch (error) {
+    console.error(
+      "Błąd pobierania historii punktów:",
+      error
+    );
+
+    setPointsHistory([]);
+  } finally {
+    setLoadingPointsHistory(false);
+  }
+}
 
   async function loadFriends() {
     setLoadingFriends(true);
@@ -804,6 +842,11 @@ function ProfileModal({
         />
 
         <TabButton
+  tab={PROFILE_TABS.POINTS}
+  label="Punkty i poziom"
+/>
+
+        <TabButton
           tab={PROFILE_TABS.PASSWORD}
           label="Hasło"
         />
@@ -820,6 +863,7 @@ function ProfileModal({
           count={favorites.length}
         />
       </nav>
+
 
       {activeTab === PROFILE_TABS.PROFILE && (
         <section>
@@ -1026,6 +1070,371 @@ function ProfileModal({
           )}
         </section>
       )}
+
+     {activeTab === PROFILE_TABS.POINTS && (
+  <section>
+    <div
+      className="adminCard"
+      style={{
+        padding: "26px",
+        marginBottom: "26px",
+      }}
+    >
+      <h2
+        style={{
+          marginTop: 0,
+          marginBottom: "10px",
+          fontSize: "26px",
+        }}
+      >
+        {level.icon} {level.name}
+      </h2>
+
+      <p
+        style={{
+          margin: 0,
+          fontSize: "18px",
+          color: "#5c6c66",
+        }}
+      >
+        Masz obecnie <strong>{points} pkt</strong>.
+      </p>
+    </div>
+
+    <div
+      className="adminCard"
+      style={{
+        padding: "26px",
+        marginBottom: "26px",
+      }}
+    >
+      <h2
+        style={{
+          marginTop: 0,
+          fontSize: "24px",
+        }}
+      >
+        📈 Postęp do kolejnego poziomu
+      </h2>
+
+      {level.nextMinimum ? (
+        <>
+          <div
+            style={{
+              width: "100%",
+              height: "18px",
+              background: "#e8efec",
+              borderRadius: "999px",
+              overflow: "hidden",
+              margin: "18px 0 12px",
+            }}
+          >
+            <div
+              style={{
+                width: `${Math.min(
+                  Math.max(
+                    ((points - level.minimum) /
+                      (level.nextMinimum -
+                        level.minimum)) *
+                      100,
+                    0
+                  ),
+                  100
+                )}%`,
+                height: "100%",
+                background: "#287b63",
+                borderRadius: "999px",
+              }}
+            />
+          </div>
+
+          <p
+            style={{
+              margin: 0,
+              fontSize: "16px",
+            }}
+          >
+            Do kolejnego poziomu brakuje Ci{" "}
+            <strong>
+              {Math.max(
+                level.nextMinimum - points,
+                0
+              )}{" "}
+              pkt
+            </strong>
+            .
+          </p>
+        </>
+      ) : (
+        <p
+          style={{
+            margin: 0,
+            fontSize: "16px",
+          }}
+        >
+          Masz najwyższy poziom. 🏆
+        </p>
+      )}
+    </div>
+
+    <div
+      className="adminCard"
+      style={{
+        padding: "26px",
+        marginBottom: "26px",
+      }}
+    >
+      <h2
+        style={{
+          marginTop: 0,
+          fontSize: "24px",
+        }}
+      >
+        🎯 Jak zdobywać punkty?
+      </h2>
+
+      <div
+        style={{
+          display: "grid",
+          gap: "14px",
+          marginTop: "18px",
+        }}
+      >
+        <div>
+          📍 Zaakceptowane miejsce —{" "}
+          <strong>+50 pkt</strong>
+        </div>
+
+        <div>
+          📷 Zaakceptowane zdjęcie —{" "}
+          <strong>+15 pkt</strong>
+        </div>
+
+        <div>
+          ⭐ Zaakceptowana opinia —{" "}
+          <strong>+10 pkt</strong>
+        </div>
+      </div>
+    </div>
+
+    <div
+      className="adminCard"
+      style={{
+        padding: "26px",
+      }}
+    >
+      <h2
+        style={{
+          marginTop: 0,
+          fontSize: "24px",
+        }}
+      >
+        🏅 Poziomy
+      </h2>
+
+      <div
+        style={{
+          display: "grid",
+          gap: "12px",
+          marginTop: "18px",
+        }}
+      >
+        {[
+          {
+            name: "Nowy użytkownik",
+            icon: "🌱",
+            minimum: 0,
+          },
+          {
+            name: "Początkujący odkrywca",
+            icon: "🏄",
+            minimum: 50,
+          },
+          {
+            name: "Odkrywca jezior",
+            icon: "🧭",
+            minimum: 200,
+          },
+          {
+            name: "Ekspert SUP",
+            icon: "🌊",
+            minimum: 500,
+          },
+          {
+            name: "Legenda SUP",
+            icon: "🏆",
+            minimum: 1000,
+          },
+        ].map((item) => {
+          const isCurrent =
+            item.name === level.name;
+
+          return (
+            <div
+              key={item.name}
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: "14px",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                border: isCurrent
+                  ? "2px solid #287b63"
+                  : "1px solid #e1e8e5",
+                background: isCurrent
+                  ? "#eef8f4"
+                  : "#ffffff",
+              }}
+            >
+              <div>
+                <strong>
+                  {item.icon} {item.name}
+                </strong>
+
+                <div
+                  style={{
+                    marginTop: "4px",
+                    fontSize: "14px",
+                    color: "#6b7a75",
+                  }}
+                >
+                  od {item.minimum} pkt
+                </div>
+              </div>
+
+              {isCurrent && (
+                <span
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: "999px",
+                    background: "#287b63",
+                    color: "#ffffff",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Twój poziom
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    <div
+      className="adminCard"
+      style={{
+        padding: "26px",
+        marginTop: "26px",
+      }}
+    >
+      <h2
+        style={{
+          marginTop: 0,
+          fontSize: "24px",
+        }}
+      >
+        🧾 Historia punktów
+      </h2>
+
+      {loadingPointsHistory ? (
+        <p>Ładowanie historii punktów...</p>
+      ) : pointsHistory.length === 0 ? (
+        <p
+          style={{
+            marginBottom: 0,
+            color: "#5c6c66",
+          }}
+        >
+          Nie masz jeszcze historii zdobytych punktów.
+        </p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gap: "12px",
+            marginTop: "18px",
+          }}
+        >
+          {pointsHistory.map((event) => {
+            let label = "Zdobyte punkty";
+            let icon = "⭐";
+
+            if (event.source_type === "place") {
+              label = "Zaakceptowane miejsce";
+              icon = "📍";
+            }
+
+            if (event.source_type === "photo") {
+              label = "Zaakceptowane zdjęcie";
+              icon = "📷";
+            }
+
+            if (event.source_type === "review") {
+              label = "Zaakceptowana opinia";
+              icon = "⭐";
+            }
+
+            const date = event.created_at
+              ? new Date(
+                  event.created_at
+                ).toLocaleDateString("pl-PL", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                })
+              : "";
+
+            return (
+              <div
+                key={event.id}
+                style={{
+                  display: "flex",
+                  justifyContent:
+                    "space-between",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "14px 0",
+                  borderBottom:
+                    "1px solid #e5ece9",
+                }}
+              >
+                <div>
+                  <strong>
+                    {icon} {label}
+                  </strong>
+
+                  {date && (
+                    <div
+                      style={{
+                        marginTop: "4px",
+                        fontSize: "14px",
+                        color: "#6b7a75",
+                      }}
+                    >
+                      {date}
+                    </div>
+                  )}
+                </div>
+
+                <strong
+                  style={{
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  +{event.points} pkt
+                </strong>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </section>
+)}
 
       {activeTab === PROFILE_TABS.PASSWORD && (
         <section
