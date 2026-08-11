@@ -88,18 +88,24 @@ export function listenToAuthChanges(callback) {
   };
 }
   export async function resetPassword(email) {
-  const cleanEmail = String(email).trim().toLowerCase();
+  const cleanEmail = String(email)
+    .trim()
+    .toLowerCase();
 
   if (!cleanEmail) {
-    throw new Error("Podaj adres e-mail.");
+    throw new Error(
+      "Podaj adres e-mail."
+    );
   }
 
-  const { error } = await supabase.auth.resetPasswordForEmail(
-    cleanEmail,
-    {
-      redirectTo: "https://su-pmapa.vercel.app/",
-    }
-  );
+  const { error } =
+    await supabase.auth.resetPasswordForEmail(
+      cleanEmail,
+      {
+        redirectTo:
+          "https://supmap.pl/?recovery=1",
+      }
+    );
 
   if (error) {
     throw error;

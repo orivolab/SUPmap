@@ -1,6 +1,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -782,6 +783,9 @@ stairs_on_route: getBoolean(
   };
 }
 function App() {
+  const passwordRecoveryRef =
+  useRef(false);
+
   const [page, setPage] =
     useState(PAGE.HOME);
 
@@ -960,9 +964,26 @@ const pendingCount =
       setUser(currentUser);
 
       if (event === "PASSWORD_RECOVERY") {
-        setPage(PAGE.RESET_PASSWORD);
-        return;
-      }
+  passwordRecoveryRef.current = true;
+
+  sessionStorage.setItem(
+    "supmap-password-recovery",
+    "true"
+  );
+
+  setPage(PAGE.RESET_PASSWORD);
+  return;
+}
+if (
+  passwordRecoveryRef.current ||
+  sessionStorage.getItem(
+    "supmap-password-recovery"
+  ) === "true"
+) {
+  passwordRecoveryRef.current = true;
+  setPage(PAGE.RESET_PASSWORD);
+  return;
+}
 
       if (currentUser) {
         loadUserData(currentUser);
@@ -1125,6 +1146,27 @@ async function initializeApp() {
         currentUser
       );
     }
+
+const isPasswordRecovery =
+  new URLSearchParams(
+    window.location.search
+  ).get("recovery") === "1";
+
+if (isPasswordRecovery) {
+  setPage(PAGE.RESET_PASSWORD);
+  return;
+}
+
+if (
+  passwordRecoveryRef.current ||
+  sessionStorage.getItem(
+    "supmap-password-recovery"
+  ) === "true"
+) {
+  passwordRecoveryRef.current = true;
+  setPage(PAGE.RESET_PASSWORD);
+  return;
+}
 
     await openPageFromCurrentAddress(
       loadedPlaces
@@ -2224,24 +2266,50 @@ if (
     );
   }
 
-  if (page === PAGE.RESET_PASSWORD) {
+if (page === PAGE.RESET_PASSWORD) {
   return renderWithSupport(
     <ResetPasswordPage
       onBack={() => {
+        passwordRecoveryRef.current =
+          false;
+
+        sessionStorage.removeItem(
+          "supmap-password-recovery"
+        );
+
+        window.history.replaceState(
+          {},
+          "",
+          "/"
+        );
+
         goHome();
       }}
       onSuccess={() => {
+        passwordRecoveryRef.current =
+          false;
+
+        sessionStorage.removeItem(
+          "supmap-password-recovery"
+        );
+
+        window.history.replaceState(
+          {},
+          "",
+          "/"
+        );
+
         goHome();
       }}
     />
   );
 }
 
-
   if (
     page === PAGE.PROFILE &&
     user
   ) {
+
     const points =
       Number(profile?.points) ||
       0;
