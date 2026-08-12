@@ -46,6 +46,7 @@ export async function sendMessage(
     );
   }
 
+  // Zapisujemy wiadomość w Supabase
   const { data, error } = await supabase
     .from("messages")
     .insert({
@@ -60,53 +61,73 @@ export async function sendMessage(
     throw error;
   }
 
+  // Wysyłamy powiadomienie push do odbiorcy
   try {
     const {
       data: { session },
+      error: sessionError,
     } = await supabase.auth.getSession();
 
-    if (session?.access_token) {
-  const response = await fetch(
-    "/api/send-push",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type":
-          "application/json",
-        Authorization:
-          `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({
-        userId: receiverId,
-        title: "Nowa wiadomość 💬",
-        body:
-          cleanContent.length > 100
-            ? `${cleanContent.slice(
-                0,
-                100
-              )}…`
-            : cleanContent,
-        url: "/",
-      }),
+    if (sessionError) {
+      throw sessionError;
     }
-  );
 
-  const result = await response
-    .json()
-    .catch(() => null);
+    if (!session?.access_token) {
+      console.warn(
+        "Brak sesji — pomijam wysyłanie powiadomienia push."
+      );
 
-  if (!response.ok) {
-    throw new Error(
-      result?.error ||
-        `Błąd API push: ${response.status}`
+      return data;
+    }
+
+    const pushReceiverId =
+      data.receiver_id;
+
+    console.log(
+      "Push do user_id:",
+      pushReceiverId
     );
-  }
 
-  console.log(
-    "Wynik wysyłania push:",
-    result
-  );
-}
+    const response = await fetch(
+      "/api/send-push",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json",
+          Authorization:
+            `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          userId: pushReceiverId,
+          title: "Nowa wiadomość 💬",
+          body:
+            cleanContent.length > 100
+              ? `${cleanContent.slice(
+                  0,
+                  100
+                )}…`
+              : cleanContent,
+          url: "/",
+        }),
+      }
+    );
+
+    const result = await response
+      .json()
+      .catch(() => null);
+
+    console.log(
+      "Wynik wysyłania push:",
+      result
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        result?.error ||
+          `Błąd API push: ${response.status}`
+      );
+    }
   } catch (pushError) {
     console.error(
       "Nie udało się wysłać powiadomienia push:",
@@ -172,10 +193,7 @@ export async function getUnreadMessagesCount() {
   const user =
     await getCurrentUserForMessages();
 
-  const {
-    count,
-    error,
-  } = await supabase
+  const { count, error } = await supabase
     .from("messages")
     .select("id", {
       count: "exact",
