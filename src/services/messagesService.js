@@ -60,6 +60,60 @@ export async function sendMessage(
     throw error;
   }
 
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.access_token) {
+  const response = await fetch(
+    "/api/send-push",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type":
+          "application/json",
+        Authorization:
+          `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        userId: receiverId,
+        title: "Nowa wiadomość 💬",
+        body:
+          cleanContent.length > 100
+            ? `${cleanContent.slice(
+                0,
+                100
+              )}…`
+            : cleanContent,
+        url: "/",
+      }),
+    }
+  );
+
+  const result = await response
+    .json()
+    .catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      result?.error ||
+        `Błąd API push: ${response.status}`
+    );
+  }
+
+  console.log(
+    "Wynik wysyłania push:",
+    result
+  );
+}
+  } catch (pushError) {
+    console.error(
+      "Nie udało się wysłać powiadomienia push:",
+      pushError
+    );
+  }
+
   return data;
 }
 

@@ -1,9 +1,15 @@
 import webpush from "web-push";
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
+const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  }
 );
 
 webpush.setVapidDetails(
@@ -20,17 +26,63 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { userId, title, body, url = "/" } = req.body ?? {};
+    const authHeader =
+      req.headers.authorization || "";
 
-    if (!userId || !title || !body) {
-      return res.status(400).json({
-        error: "Brakuje userId, title lub body.",
+    const accessToken =
+      authHeader.startsWith("Bearer ")
+        ? authHeader.slice(7)
+        : null;
+
+    if (!accessToken) {
+      return res.status(401).json({
+        error: "Brak autoryzacji.",
       });
     }
 
-    const { data: subscriptions, error } = await supabase
+    const {
+      data: { user },
+      error: authError,
+    } =
+      await supabaseAdmin.auth.getUser(
+        accessToken
+      );
+
+    if (authError || !user) {
+      return res.status(401).json({
+        error: "Nieprawidłowa sesja.",
+      });
+    }
+
+    const {
+      userId,
+      title,
+      body,
+      url = "/",
+    } = req.body ?? {};
+
+    if (!userId || !title || !body) {
+      return res.status(400).json({
+        error:
+          "Brakuje userId, title lub body.",
+      });
+    }
+
+    if (userId === user.id) {
+      return res.status(400).json({
+        error:
+          "Nie wysyłamy powiadomienia do samego siebie.",
+      });
+    }
+
+    const {
+      data: subscriptions,
+      error,
+    } = await supabaseAdmin
       .from("push_subscriptions")
-      .select("id, endpoint, p256dh, auth")
+      .select(
+        "id, endpoint, p256dh, auth"
+      )
       .eq("user_id", userId);
 
     if (error) {
@@ -40,7 +92,8 @@ export default async function handler(req, res) {
     if (!subscriptions?.length) {
       return res.status(200).json({
         sent: 0,
-        message: "Użytkownik nie ma aktywnych urządzeń push.",
+        message:
+          "Użytkownik nie ma aktywnych urządzeń push.",
       });
     }
 
@@ -56,9 +109,11 @@ export default async function handler(req, res) {
       try {
         await webpush.sendNotification(
           {
-            endpoint: subscription.endpoint,
+            endpoint:
+              subscription.endpoint,
             keys: {
-              p256dh: subscription.p256dh,
+              p256dh:
+                subscription.p256dh,
               auth: subscription.auth,
             },
           },
@@ -67,13 +122,16 @@ export default async function handler(req, res) {
 
         sent += 1;
       } catch (pushError) {
-        console.error("Błąd wysyłania push:", pushError);
+        console.error(
+          "Błąd wysyłania push:",
+          pushError
+        );
 
         if (
           pushError.statusCode === 404 ||
           pushError.statusCode === 410
         ) {
-          await supabase
+          await supabaseAdmin
             .from("push_subscriptions")
             .delete()
             .eq("id", subscription.id);
@@ -86,10 +144,14 @@ export default async function handler(req, res) {
       sent,
     });
   } catch (error) {
-    console.error("Błąd API send-push:", error);
+    console.error(
+      "Błąd API send-push:",
+      error
+    );
 
     return res.status(500).json({
-      error: "Nie udało się wysłać powiadomienia.",
+      error:
+        "Nie udało się wysłać powiadomienia.",
     });
   }
 }
